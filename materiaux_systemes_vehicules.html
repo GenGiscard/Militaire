@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V&eacute;hicules militaires &mdash; Mat&eacute;riaux &amp; syst&egrave;mes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F8F4EC; --ink:#23323d; --ink-soft:#5b6b75;
+    --copper:#B85C2E; --copper-d:#8f4420; --steel:#2E6A8E; --steel-soft:#e2edf3;
+    --card:#fff; --line:#e7ddca; --line-d:#d9cdb3; --ok:#2f8f5b; --no:#c0492f; --lock:#9a8f7a;
+    --shadow:0 10px 30px rgba(35,50,61,.08);
+    --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+    --disp:'Bricolage Grotesque',system-ui,-apple-system,Segoe UI,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--disp);font-size:18px;line-height:1.55;
+    background-image:linear-gradient(rgba(46,106,142,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(46,106,142,.04) 1px,transparent 1px);background-size:28px 28px;}
+  .wrap{display:flex;align-items:flex-start;max-width:1280px;margin:0 auto}
+
+  /* sidebar */
+  .sidebar{position:sticky;top:0;height:100vh;width:262px;flex:0 0 262px;padding:26px 18px;border-right:1px solid var(--line);background:rgba(248,244,236,.86);backdrop-filter:blur(4px);overflow:auto}
+  .brand{font-weight:800;font-size:19px;letter-spacing:-.02em;line-height:1.1}
+  .brand small{display:block;font-family:var(--mono);font-weight:500;font-size:11px;color:var(--copper);letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
+  .side-nav{list-style:none;margin:18px 0 0;padding:0}
+  .side-link{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;cursor:pointer;background:none;border:0;border-radius:10px;padding:10px;margin-bottom:2px;font-family:var(--disp);font-size:14.5px;color:var(--ink);transition:.15s}
+  .side-link:hover{background:var(--steel-soft)}
+  .side-link .num{font-family:var(--mono);font-size:12px;color:var(--copper);font-weight:700;min-width:18px;padding-top:1px}
+  .side-link.active{background:var(--steel);color:#fff}
+  .side-link.active .num{color:#cfe3f0}
+  .side-tip{margin-top:20px;font-family:var(--mono);font-size:11px;color:var(--ink-soft);line-height:1.7}
+  .kbd{display:inline-block;border:1px solid var(--line-d);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:#fff;font-size:11px}
+  .back{display:inline-block;margin-top:18px;font-family:var(--mono);font-size:12px;color:var(--steel);text-decoration:underline dotted}
+
+  /* main */
+  .main{flex:1 1 auto;min-width:0}
+  .slide{padding:60px 56px;border-bottom:1px solid var(--line);min-height:92vh;display:flex;flex-direction:column;justify-content:center}
+  .slide:first-child{min-height:100vh}
+  .eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--copper)}
+  h1{font-size:clamp(32px,4.4vw,54px);line-height:1.02;letter-spacing:-.03em;margin:.1em 0 .35em;font-weight:800}
+  h2{font-size:clamp(27px,3.3vw,40px);line-height:1.05;letter-spacing:-.025em;margin:.1em 0 .3em;font-weight:800}
+  h3{font-size:19px;margin:0 0 .35em;letter-spacing:-.01em}
+  .lead{font-size:clamp(17px,1.6vw,20px);color:var(--ink-soft);max-width:62ch;margin:.2em 0 0}
+  .tags{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 4px}
+  .tag{font-family:var(--mono);font-size:13px;background:#fff;border:1px solid var(--line-d);border-radius:999px;padding:7px 14px;display:flex;align-items:center;gap:8px}
+  .tag b{color:var(--steel)} .dot{width:8px;height:8px;border-radius:50%;background:var(--copper)}
+
+  /* anim / sim block */
+  .anim{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:18px;margin:24px 0 8px;max-width:1000px}
+  .anim canvas{width:100%;height:auto;display:block;background:linear-gradient(#fbfdff,#f3f8fb);border:1px solid var(--line);border-radius:14px}
+  .anim-bar{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+  .anim-caption{flex:1 1 320px;min-height:46px;font-size:16px;line-height:1.45}
+  .btn{font-family:var(--disp);font-weight:600;font-size:15px;border:0;border-radius:11px;padding:11px 18px;cursor:pointer;transition:transform .1s,filter .15s}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--copper);color:#fff}.btn-primary:hover{filter:brightness(1.06)}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed}
+  .btn-ghost{background:#fff;color:var(--steel);border:1px solid var(--line-d)}.btn-ghost:hover{background:var(--steel-soft)}
+
+  .ctrls{display:grid;gap:16px;margin:16px 0 14px;max-width:1000px}
+  .ctrl label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:14px;margin-bottom:7px}
+  .ctrl label .v{color:var(--copper-d);font-weight:700}
+  input[type=range]{-webkit-appearance:none;width:100%;height:8px;border-radius:999px;background:linear-gradient(90deg,var(--steel-soft),#cfe0eb);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--copper);border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--copper);border:3px solid #fff;cursor:pointer}
+  .readout{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:4px}
+  .stat{font-family:var(--mono);font-size:14px;background:#fbfaf6;border:1px solid var(--line-d);border-radius:10px;padding:8px 13px}
+  .stat b{color:var(--steel)}
+
+  .callouts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;max-width:1000px}
+  .callout{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+  .callout h4{margin:0 0 4px;font-size:16px}.callout p{margin:0;font-size:14px;color:var(--ink-soft)}
+  .callout .em{font-family:var(--mono);font-weight:700;color:var(--copper-d)}
+
+  .retain{display:flex;gap:16px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-left:5px solid var(--copper);border-radius:14px;padding:18px 22px;margin:22px 0 4px;max-width:1000px;box-shadow:var(--shadow)}
+  .retain .ic{font-family:var(--mono);font-weight:700;color:var(--copper);font-size:13px;letter-spacing:.1em;white-space:nowrap;padding-top:3px}
+  .retain p{margin:0;font-size:16.5px}
+  .formula{font-family:var(--mono);font-weight:700;color:var(--steel);background:var(--steel-soft);padding:2px 9px;border-radius:7px}
+  .punch{color:var(--copper-d);font-weight:600}
+  .note{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin-top:10px;max-width:1000px}
+
+  /* materials */
+  .mat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:22px;max-width:1000px}
+  .mat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+  .mat .mh{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .mat .chip{width:30px;height:30px;border-radius:8px;border:1px solid rgba(0,0,0,.08)}
+  .mat h4{margin:0;font-size:17px}
+  .mat .rho{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft)}
+  .prop{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);margin:5px 0}
+  .prop .lbl{min-width:64px}
+  .meter{flex:1;height:8px;background:#eee2cd;border-radius:999px;overflow:hidden}
+  .meter i{display:block;height:100%;background:linear-gradient(90deg,var(--steel),var(--copper))}
+  .mat .use{font-size:13px;margin-top:10px;color:var(--ink)}
+
+  /* chain of information */
+  .chain{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin-top:22px;max-width:1000px}
+  .cbox{flex:1 1 150px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow);text-align:center;position:relative}
+  .cbox .k{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--copper);font-weight:700}
+  .cbox h4{margin:6px 0 3px;font-size:15px}.cbox p{margin:0;font-size:12.5px;color:var(--ink-soft)}
+  .carrow{display:flex;align-items:center;justify-content:center;font-family:var(--mono);color:var(--steel);font-weight:700;padding:0 6px}
+  @media(max-width:760px){ .carrow{transform:rotate(90deg);padding:6px 0} }
+
+  /* RWS schematic + systems cards */
+  .sys-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:24px;align-items:center;margin-top:20px;max-width:1000px}
+  .sys-list{list-style:none;margin:0;padding:0}
+  .sys-list li{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #f1ead9;font-size:15px}
+  .sys-list .b{font-size:20px;line-height:1.2}
+  .sys-list b{color:var(--copper-d)}
+  .schem{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:var(--shadow)}
+
+  /* stabilisation mini */
+  .stab{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:18px}
+  .stab-box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);width:260px}
+  .stab svg .hull{transform-origin:130px 70px;animation:rock 3.2s ease-in-out infinite}
+  @keyframes rock{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+  @media (prefers-reduced-motion: reduce){ .stab svg .hull{animation:none} * {scroll-behavior:auto} }
+
+  @media (max-width:980px){
+    .wrap{flex-direction:column}
+    .sidebar{position:sticky;top:0;height:auto;width:100%;flex:none;display:flex;align-items:center;gap:14px;overflow-x:auto;white-space:nowrap;padding:12px 14px;border-right:0;border-bottom:1px solid var(--line);z-index:20}
+    .brand{flex:0 0 auto}.side-tip,.back{display:none}.side-nav{display:flex;gap:4px;margin:0}.side-link{flex:0 0 auto;font-size:13px}
+    .slide{padding:46px 20px;min-height:auto}
+    .callouts,.sys-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="sidebar" aria-label="Sommaire">
+    <div class="brand"><small>Pour aller plus loin</small>Mat&eacute;riaux &amp; syst&egrave;mes</div>
+    <ul class="side-nav">
+      <li><button class="side-link" data-i="0"><span class="num">0</span><span>Introduction</span></button></li>
+      <li><button class="side-link" data-i="1"><span class="num">1</span><span>Balistique</span></button></li>
+      <li><button class="side-link" data-i="2"><span class="num">2</span><span>Les mat&eacute;riaux</span></button></li>
+      <li><button class="side-link" data-i="3"><span class="num">3</span><span>Les syst&egrave;mes</span></button></li>
+      <li><button class="side-link" data-i="4"><span class="num">4</span><span>Synth&egrave;se</span></button></li>
+    </ul>
+    <div class="side-tip"><span class="kbd">&uarr;</span> <span class="kbd">&darr;</span> pour naviguer.</div>
+    <a class="back" href="vehicules_militaires.html">&larr; Retour au parcours</a>
+  </nav>
+
+  <main class="main">
+
+    <!-- 0 INTRO -->
+    <section class="slide" id="sec-0">
+      <div class="eyebrow">Module avanc&eacute;</div>
+      <h1>Mat&eacute;riaux &amp; syst&egrave;mes</h1>
+      <p class="lead">On va plus loin que les engins eux-m&ecirc;mes&nbsp;: la <b>trajectoire</b> d&rsquo;un projectile (physique du tir), les <b>mat&eacute;riaux</b> qui composent un v&eacute;hicule, et les <b>syst&egrave;mes</b> embarqu&eacute;s &mdash; ces objets techniques qui voient, calculent et agissent.</p>
+      <div class="tags">
+        <span class="tag"><span class="dot"></span> <b>Balistique</b> &middot; la parabole</span>
+        <span class="tag"><span class="dot"></span> <b>Mat&eacute;riaux</b> &middot; propri&eacute;t&eacute;s</span>
+        <span class="tag"><span class="dot"></span> <b>Syst&egrave;mes</b> &middot; capteurs &amp; commande</span>
+      </div>
+    </section>
+
+    <!-- 1 BALISTIQUE -->
+    <section class="slide" id="sec-1">
+      <div class="eyebrow">1 &middot; Physique du tir</div>
+      <h2>La balistique&nbsp;: la trajectoire d&rsquo;un projectile</h2>
+      <p class="lead">D&egrave;s qu&rsquo;un projectile quitte le tube, une seule force le guide&nbsp;: la <b>pesanteur</b>. Sa trajectoire dessine une <b>parabole</b>. R&egrave;gle les param&egrave;tres et observe la port&eacute;e changer.</p>
+
+      <div class="anim">
+        <canvas id="cv-balist" width="900" height="380" role="img" aria-label="Simulateur de trajectoire d'un projectile"></canvas>
+        <div class="anim-bar">
+          <p class="anim-caption" id="cap-balist">R&eacute;gle l&rsquo;angle et la vitesse, puis lance le tir.</p>
+          <button class="btn btn-ghost" id="balist-reset">&#8635; Effacer</button>
+          <button class="btn btn-primary" id="balist-fire">&#127919; Tirer</button>
+        </div>
+      </div>
+      <div class="ctrls">
+        <div class="ctrl">
+          <label>Angle de tir <span class="v" id="ba-a-v">45&deg;</span></label>
+          <input type="range" id="ba-a" min="10" max="80" step="1" value="45">
+        </div>
+        <div class="ctrl">
+          <label>Vitesse initiale <span class="v" id="ba-v-v">35 m/s</span></label>
+          <input type="range" id="ba-v" min="10" max="60" step="1" value="35">
+        </div>
+      </div>
+      <div class="readout">
+        <span class="stat">Port&eacute;e&nbsp;: <b id="ba-r">122</b> m</span>
+        <span class="stat">Hauteur max&nbsp;: <b id="ba-h">31</b> m</span>
+        <span class="stat">Dur&eacute;e&nbsp;: <b id="ba-t">5,0</b> s</span>
+      </div>
+
+      <div class="callouts">
+        <div class="callout"><h4>Tir tendu</h4><p><span class="em">Petit angle, grande vitesse.</span> Trajectoire presque droite, rapide et directe &mdash; pour une cible en vue.</p></div>
+        <div class="callout"><h4>Tir en cloche</h4><p><span class="em">Grand angle.</span> Le projectile monte haut et retombe &mdash; pour passer par-dessus un obstacle.</p></div>
+      </div>
+      <div class="retain">
+        <span class="ic">&Agrave; RETENIR</span>
+        <p>Sans air, la port&eacute;e est maximale pour un angle de <span class="formula">45&deg;</span>. Plus la <b>vitesse</b> de d&eacute;part est grande, plus on va loin. <span class="punch">Dans la r&eacute;alit&eacute;, l&rsquo;air freine le projectile&nbsp;: la port&eacute;e est plus courte et la courbe l&eacute;g&egrave;rement d&eacute;form&eacute;e.</span></p>
+      </div>
+    </section>
+
+    <!-- 2 MATERIAUX -->
+    <section class="slide" id="sec-2">
+      <div class="eyebrow">2 &middot; Science des mat&eacute;riaux</div>
+      <h2>Les mat&eacute;riaux du v&eacute;hicule</h2>
+      <p class="lead">Un v&eacute;hicule n&rsquo;est pas fait d&rsquo;un seul mat&eacute;riau&nbsp;: on choisit <b>le bon mat&eacute;riau au bon endroit</b> selon trois qualit&eacute;s &mdash; la <b>densit&eacute;</b> (lourd ou l&eacute;ger), la <b>duret&eacute;</b> et la <b>t&eacute;nacit&eacute;</b> (r&eacute;siste sans casser).</p>
+
+      <div class="mat-grid">
+        <div class="mat">
+          <div class="mh"><span class="chip" style="background:#8a8f96"></span><div><h4>Acier</h4><div class="rho">&asymp; 7,8 g/cm&sup3;</div></div></div>
+          <div class="prop"><span class="lbl">Densit&eacute;</span><span class="meter"><i style="width:96%"></i></span></div>
+          <div class="prop"><span class="lbl">Duret&eacute;</span><span class="meter"><i style="width:80%"></i></span></div>
+          <div class="prop"><span class="lbl">T&eacute;nacit&eacute;</span><span class="meter"><i style="width:78%"></i></span></div>
+          <div class="use">Blindage principal, structure r&eacute;sistante. <b>Lourd</b>.</div>
+        </div>
+        <div class="mat">
+          <div class="mh"><span class="chip" style="background:#c9ccd1"></span><div><h4>Aluminium</h4><div class="rho">&asymp; 2,7 g/cm&sup3;</div></div></div>
+          <div class="prop"><span class="lbl">Densit&eacute;</span><span class="meter"><i style="width:34%"></i></span></div>
+          <div class="prop"><span class="lbl">Duret&eacute;</span><span class="meter"><i style="width:42%"></i></span></div>
+          <div class="prop"><span class="lbl">T&eacute;nacit&eacute;</span><span class="meter"><i style="width:55%"></i></span></div>
+          <div class="use">All&eacute;ger la caisse et les structures. <b>L&eacute;ger</b>.</div>
+        </div>
+        <div class="mat">
+          <div class="mh"><span class="chip" style="background:#9aa6b3"></span><div><h4>Titane</h4><div class="rho">&asymp; 4,5 g/cm&sup3;</div></div></div>
+          <div class="prop"><span class="lbl">Densit&eacute;</span><span class="meter"><i style="width:58%"></i></span></div>
+          <div class="prop"><span class="lbl">Duret&eacute;</span><span class="meter"><i style="width:78%"></i></span></div>
+          <div class="prop"><span class="lbl">T&eacute;nacit&eacute;</span><span class="meter"><i style="width:82%"></i></span></div>
+          <div class="use">Protection l&eacute;g&egrave;re et solide. <b>Co&ucirc;teux</b>.</div>
+        </div>
+        <div class="mat">
+          <div class="mh"><span class="chip" style="background:#d8c4a0"></span><div><h4>C&eacute;ramique</h4><div class="rho">dure &amp; l&eacute;g&egrave;re</div></div></div>
+          <div class="prop"><span class="lbl">Densit&eacute;</span><span class="meter"><i style="width:40%"></i></span></div>
+          <div class="prop"><span class="lbl">Duret&eacute;</span><span class="meter"><i style="width:98%"></i></span></div>
+          <div class="prop"><span class="lbl">T&eacute;nacit&eacute;</span><span class="meter"><i style="width:22%"></i></span></div>
+          <div class="use">Couche tr&egrave;s dure qui <b>casse</b> le projectile (dans les composites).</div>
+        </div>
+        <div class="mat">
+          <div class="mh"><span class="chip" style="background:#caa46a"></span><div><h4>Aramide (Kevlar)</h4><div class="rho">tr&egrave;s l&eacute;ger</div></div></div>
+          <div class="prop"><span class="lbl">Densit&eacute;</span><span class="meter"><i style="width:16%"></i></span></div>
+          <div class="prop"><span class="lbl">Duret&eacute;</span><span class="meter"><i style="width:20%"></i></span></div>
+          <div class="prop"><span class="lbl">T&eacute;nacit&eacute;</span><span class="meter"><i style="width:90%"></i></span></div>
+          <div class="use">Tissu souple qui <b>arr&ecirc;te les &eacute;clats</b> (gilets, doublures).</div>
+        </div>
+      </div>
+
+      <div class="retain">
+        <span class="ic">&Agrave; RETENIR</span>
+        <p>Aucun mat&eacute;riau n&rsquo;est parfait&nbsp;: l&rsquo;acier est solide mais lourd, l&rsquo;aluminium l&eacute;ger mais moins dur. On les <b>combine</b> (composites&nbsp;: c&eacute;ramique dure + arri&egrave;re t&eacute;nace) pour avoir le meilleur des deux. C&rsquo;est encore <span class="punch">un compromis r&eacute;sistance / masse</span>.</p>
+      </div>
+    </section>
+
+    <!-- 3 SYSTEMES -->
+    <section class="slide" id="sec-3">
+      <div class="eyebrow">3 &middot; Objets techniques = syst&egrave;mes</div>
+      <h2>Les syst&egrave;mes embarqu&eacute;s</h2>
+      <p class="lead">Un v&eacute;hicule moderne est un <b>syst&egrave;me</b>&nbsp;: il <b>capte</b> des informations, les <b>traite</b>, puis <b>commande</b> une action. C&rsquo;est la cha&icirc;ne d&rsquo;information.</p>
+
+      <div class="chain">
+        <div class="cbox"><div class="k">Capteurs</div><h4>Percevoir</h4><p>Cam&eacute;ras, t&eacute;l&eacute;m&egrave;tre laser, d&eacute;tecteurs.</p></div>
+        <div class="carrow">&rarr;</div>
+        <div class="cbox"><div class="k">Traitement</div><h4>D&eacute;cider</h4><p>Un calculateur analyse les donn&eacute;es.</p></div>
+        <div class="carrow">&rarr;</div>
+        <div class="cbox"><div class="k">Commande</div><h4>Ordonner</h4><p>L&rsquo;op&eacute;rateur via &eacute;cran et manette.</p></div>
+        <div class="carrow">&rarr;</div>
+        <div class="cbox"><div class="k">Actionneur</div><h4>Agir</h4><p>Moteurs qui orientent le tourelleau.</p></div>
+      </div>
+
+      <h3 style="margin-top:36px">Le tourelleau t&eacute;l&eacute;op&eacute;r&eacute;</h3>
+      <div class="sys-grid">
+        <div class="schem">
+          <svg width="100%" height="240" viewBox="0 0 420 240" role="img" aria-label="Sch&eacute;ma d'un tourelleau t&eacute;l&eacute;op&eacute;r&eacute;">
+            <!-- sol -->
+            <line x1="0" y1="206" x2="420" y2="206" stroke="#d9cdb3" stroke-width="2"/>
+            <!-- caisse -->
+            <rect x="60" y="120" width="300" height="86" rx="10" fill="#2E6A8E"/>
+            <rect x="60" y="120" width="300" height="20" rx="10" fill="#1f4d68"/>
+            <!-- roues -->
+            <circle cx="110" cy="206" r="16" fill="#23323d"/><circle cx="110" cy="206" r="6" fill="#9aa6ad"/>
+            <circle cx="310" cy="206" r="16" fill="#23323d"/><circle cx="310" cy="206" r="6" fill="#9aa6ad"/>
+            <!-- operateur protege -->
+            <circle cx="150" cy="170" r="13" fill="#f6e3d4"/>
+            <rect x="142" y="180" width="16" height="20" rx="4" fill="#9a4a22"/>
+            <text x="150" y="232" font-family="JetBrains Mono, monospace" font-size="10" fill="#5b6b75" text-anchor="middle">op&eacute;rateur prot&eacute;g&eacute;</text>
+            <!-- ecran + manette -->
+            <rect x="186" y="150" width="26" height="18" rx="2" fill="#cfe3f0" stroke="#1f4d68"/>
+            <text x="199" y="146" font-family="JetBrains Mono, monospace" font-size="9" fill="#23323d" text-anchor="middle">&eacute;cran</text>
+            <!-- liaison -->
+            <path d="M250 150 C 270 120, 280 100, 300 92" stroke="#B85C2E" stroke-width="2.5" fill="none" stroke-dasharray="4 4"/>
+            <!-- tourelleau sur le toit -->
+            <rect x="280" y="78" width="70" height="26" rx="5" fill="#23323d"/>
+            <rect x="345" y="84" width="48" height="7" rx="3" fill="#23323d"/>
+            <!-- camera -->
+            <rect x="286" y="66" width="16" height="12" rx="2" fill="#B85C2E"/>
+            <circle cx="294" cy="72" r="3" fill="#fbeee6"/>
+            <text x="315" y="58" font-family="JetBrains Mono, monospace" font-size="10" fill="#8f4420" text-anchor="middle">cam&eacute;ra jour/nuit</text>
+          </svg>
+        </div>
+        <ul class="sys-list">
+          <li><span class="b">&#128737;</span><div>L&rsquo;<b>op&eacute;rateur reste &agrave; l&rsquo;abri</b> dans le v&eacute;hicule&nbsp;: il commande tout &agrave; distance.</div></li>
+          <li><span class="b">&#128065;</span><div><b>Optronique</b>&nbsp;: cam&eacute;ras jour et nuit (thermique) pour voir m&ecirc;me dans le noir.</div></li>
+          <li><span class="b">&#128207;</span><div><b>T&eacute;l&eacute;m&egrave;tre laser</b>&nbsp;: mesure la distance en chronom&eacute;trant un &eacute;clair laser (aller-retour).</div></li>
+          <li><span class="b">&#9878;</span><div><b>Stabilisation</b>&nbsp;: l&rsquo;image et la vis&eacute;e restent fixes m&ecirc;me quand le v&eacute;hicule roule.</div></li>
+        </ul>
+      </div>
+
+      <div class="stab">
+        <div class="stab-box">
+          <svg width="100%" height="120" viewBox="0 0 260 120" role="img" aria-label="Illustration de la stabilisation">
+            <line x1="10" y1="92" x2="250" y2="92" stroke="#d9cdb3" stroke-width="2"/>
+            <g class="hull">
+              <rect x="70" y="56" width="120" height="30" rx="6" fill="#2E6A8E"/>
+              <circle cx="95" cy="90" r="10" fill="#23323d"/><circle cx="165" cy="90" r="10" fill="#23323d"/>
+            </g>
+            <!-- visee stabilisee : reste horizontale -->
+            <line x1="120" y1="48" x2="240" y2="48" stroke="#B85C2E" stroke-width="3"/>
+            <circle cx="240" cy="48" r="4" fill="#B85C2E"/>
+            <text x="180" y="40" font-family="JetBrains Mono, monospace" font-size="10" fill="#8f4420" text-anchor="middle">vis&eacute;e stable</text>
+          </svg>
+        </div>
+        <div style="flex:1;min-width:240px;color:var(--ink-soft);font-size:15px">
+          La caisse tangue sur le terrain, mais la <b>vis&eacute;e reste horizontale</b>&nbsp;: un syst&egrave;me d&rsquo;<b>asservissement</b> (avec gyroscope) corrige en permanence. M&ecirc;me id&eacute;e que la cam&eacute;ra stabilis&eacute;e d&rsquo;un t&eacute;l&eacute;phone.
+        </div>
+      </div>
+
+      <h3 style="margin-top:38px">Le blindage cage <span style="font-family:var(--mono);font-size:13px;color:var(--ink-soft)">(slat armor)</span></h3>
+      <p class="lead" style="margin-bottom:4px">Une grille mont&eacute;e &agrave; distance autour du v&eacute;hicule. Elle ne renforce pas l&rsquo;acier&hellip; elle <b>emp&ecirc;che la roquette de fonctionner</b>. Encore de la protection par la <b>g&eacute;om&eacute;trie</b>.</p>
+      <div class="anim">
+        <canvas id="cv-cage" width="900" height="300" role="img" aria-label="Animation du blindage cage"></canvas>
+        <div class="anim-bar">
+          <p class="anim-caption" id="cap-cage"></p>
+          <button class="btn btn-ghost" id="cage-reset">&#8635; Revoir</button>
+          <button class="btn btn-primary" id="cage-next">&Eacute;tape suivante &rarr;</button>
+        </div>
+      </div>
+      <div class="note">Limite&nbsp;: les roquettes &agrave; <b>charge en tandem</b> (deux charges l&rsquo;une derri&egrave;re l&rsquo;autre) peuvent contourner cette protection.</div>
+    </section>
+
+    <!-- 4 SYNTHESE -->
+    <section class="slide" id="sec-4">
+      <div class="eyebrow">Synth&egrave;se</div>
+      <h2>Voir, prot&eacute;ger, &eacute;loigner le danger</h2>
+      <p class="lead">Toutes ces technologies r&eacute;pondent aux m&ecirc;mes besoins que les engins du d&eacute;but&nbsp;: <b>mieux voir</b> (optronique, capteurs), <b>mieux se prot&eacute;ger</b> (mat&eacute;riaux, blindage cage), et <b>&eacute;loigner l&rsquo;humain du danger</b> (tourelleau t&eacute;l&eacute;op&eacute;r&eacute;, robots).</p>
+      <div class="tags">
+        <span class="tag"><span class="dot"></span> Balistique &rarr; <b>la parabole, 45&deg;</b></span>
+        <span class="tag"><span class="dot"></span> Mat&eacute;riaux &rarr; <b>le bon, au bon endroit</b></span>
+        <span class="tag"><span class="dot"></span> Syst&egrave;mes &rarr; <b>capter, traiter, agir</b></span>
+      </div>
+      <div class="retain" style="margin-top:26px">
+        <span class="ic">EN UN MOT</span>
+        <p>Derri&egrave;re chaque choix technique, il y a de la <b>physique</b> (forces, trajectoires), des <b>mat&eacute;riaux</b> et des <b>syst&egrave;mes</b> &mdash; et toujours des <span class="punch">compromis</span>. C&rsquo;est exactement le m&eacute;tier de l&rsquo;ing&eacute;nieur.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var G=10;
+  function id(x){ return document.getElementById(x); }
+  function frDec(x,n){ return x.toFixed(n).replace(".",","); }
+  function ctxText(ctx,t,x,y,size,col,align,weight){ ctx.fillStyle=col; ctx.font=(weight||"700")+" "+size+"px 'JetBrains Mono', monospace"; ctx.textAlign=align||"center"; ctx.textBaseline="middle"; ctx.fillText(t,x,y); }
+  function rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function arrow(ctx,x1,y1,x2,y2,col,w){ ctx.save(); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.lineCap="round"; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); var a=Math.atan2(y2-y1,x2-x1),h=8+w; ctx.beginPath(); ctx.moveTo(x2,y2); ctx.lineTo(x2-h*Math.cos(a-0.4),y2-h*Math.sin(a-0.4)); ctx.lineTo(x2-h*Math.cos(a+0.4),y2-h*Math.sin(a+0.4)); ctx.closePath(); ctx.fill(); ctx.restore(); }
+
+  /* ---------- NAVIGATION ---------- */
+  var SECTIONS=Array.prototype.slice.call(document.querySelectorAll("section.slide"));
+  var LINKS=Array.prototype.slice.call(document.querySelectorAll(".side-link"));
+  for (var k=0;k<LINKS.length;k++){
+    (function(i){ LINKS[i].addEventListener("click", function(){ SECTIONS[i].scrollIntoView({behavior:"smooth",block:"start"}); }); })(k);
+  }
+  if ("IntersectionObserver" in window){
+    var obs=new IntersectionObserver(function(entries){
+      for (var e=0;e<entries.length;e++){ if (entries[e].isIntersecting){ var idx=SECTIONS.indexOf(entries[e].target); for (var l=0;l<LINKS.length;l++){ LINKS[l].classList.toggle("active", l===idx); } } }
+    },{rootMargin:"-45% 0px -45% 0px",threshold:0});
+    for (var s=0;s<SECTIONS.length;s++){ obs.observe(SECTIONS[s]); }
+  }
+  document.addEventListener("keydown", function(ev){
+    if (ev.key==="ArrowDown"||ev.key==="ArrowUp"){
+      var tag=(ev.target&&ev.target.tagName?ev.target.tagName:"").toLowerCase();
+      if (tag==="input"||tag==="textarea") return;
+      ev.preventDefault();
+      var mid=window.innerHeight/2, best=0, bd=Infinity;
+      for (var i=0;i<SECTIONS.length;i++){ var r=SECTIONS[i].getBoundingClientRect(); var d=Math.abs((r.top+r.height/2)-mid); if(d<bd){bd=d;best=i;} }
+      best = ev.key==="ArrowDown" ? Math.min(best+1,SECTIONS.length-1) : Math.max(best-1,0);
+      SECTIONS[best].scrollIntoView({behavior:"smooth",block:"start"});
+    }
+  });
+
+  /* ---------- SIMULATEUR BALISTIQUE ---------- */
+  (function(){
+    var cv=id("cv-balist"); if(!cv) return; var ctx=cv.getContext("2d"); var W=cv.width,H=cv.height;
+    var aEl=id("ba-a"), vEl=id("ba-v"), fire=id("balist-fire"), reset=id("balist-reset"), cap=id("cap-balist");
+    var raf=null, busy=false;
+    function params(){
+      var ang=parseInt(aEl.value,10), v0=parseInt(vEl.value,10);
+      var rad=ang*Math.PI/180, vx=v0*Math.cos(rad), vy=v0*Math.sin(rad);
+      var R=v0*v0*Math.sin(2*rad)/G, Hm=(vy*vy)/(2*G), T=2*vy/G;
+      return {ang:ang,v0:v0,vx:vx,vy:vy,R:R,Hm:Hm,T:T};
+    }
+    function draw(p, ball){
+      var P=params();
+      var ox=64, oy=H-42, usableW=W-ox-34, usableH=oy-30;
+      var s=Math.min(usableW/Math.max(P.R,1), usableH/Math.max(P.Hm,1));
+      ctx.clearRect(0,0,W,H);
+      // sol
+      ctx.fillStyle="#e7ddca"; ctx.fillRect(0,oy,W,H-oy);
+      ctx.strokeStyle="#c9bb9a"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(W,oy); ctx.stroke();
+      ctxText(ctx,"SOL",24,oy+22,12,"#a08e6c","left");
+      // marqueurs portee / hauteur
+      var impX=ox+P.R*s;
+      ctx.strokeStyle="#9fc3d8"; ctx.setLineDash([5,5]); ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(ox, oy-P.Hm*s); ctx.lineTo(impX, oy-P.Hm*s); ctx.stroke();
+      ctx.setLineDash([]);
+      ctxText(ctx,"HAUTEUR "+Math.round(P.Hm)+" m", ox+6, oy-P.Hm*s-12, 12, "#2E6A8E","left");
+      // canon
+      var gl=44;
+      ctx.strokeStyle="#23323d"; ctx.lineWidth=8; ctx.lineCap="round";
+      ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ox+Math.cos(P.ang*Math.PI/180)*gl, oy-Math.sin(P.ang*Math.PI/180)*gl); ctx.stroke();
+      ctx.fillStyle="#23323d"; ctx.beginPath(); ctx.arc(ox,oy,9,0,7); ctx.fill();
+      // trajectoire (jusqu'a fraction p)
+      ctx.strokeStyle="#B85C2E"; ctx.lineWidth=3; ctx.beginPath();
+      var steps=120, tEnd=P.T*p, last={x:ox,y:oy};
+      for (var i=0;i<=steps;i++){
+        var t=tEnd*i/steps;
+        var x=ox+P.vx*t*s, y=oy-(P.vy*t-0.5*G*t*t)*s;
+        if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        last={x:x,y:y};
+      }
+      ctx.stroke();
+      // projectile
+      if (ball){ ctx.fillStyle="#8f4420"; ctx.beginPath(); ctx.arc(last.x,last.y,6,0,7); ctx.fill(); }
+      // impact + portee
+      ctx.strokeStyle="#c0492f"; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(impX,oy-7); ctx.lineTo(impX,oy+7); ctx.stroke();
+      ctxText(ctx,"PORTEE "+Math.round(P.R)+" m", impX, oy+22, 12, "#c0492f","center");
+      // angle
+      ctxText(ctx, P.ang+" deg", ox+30, oy-14, 12, "#5b6b75","left");
+    }
+    function liveUpdate(){
+      var P=params();
+      id("ba-a-v").textContent=P.ang+"\u00b0"; id("ba-v-v").textContent=P.v0+" m/s";
+      id("ba-r").textContent=Math.round(P.R); id("ba-h").textContent=Math.round(P.Hm); id("ba-t").textContent=frDec(P.T,1);
+      draw(1,false);
+    }
+    function shoot(){
+      if (busy) return; busy=true; fire.disabled=true;
+      cap.textContent="La pesanteur courbe la trajectoire en parabole\u2026";
+      var start=null, dur=2400;
+      function step(ts){
+        if(start===null) start=ts;
+        var p=Math.min(1,(ts-start)/dur);
+        draw(p,true);
+        if (p<1) raf=requestAnimationFrame(step);
+        else { busy=false; fire.disabled=false; cap.textContent="Touch\u00e9 ! Change l\u2019angle ou la vitesse et compare la port\u00e9e."; }
+      }
+      raf=requestAnimationFrame(step);
+    }
+    aEl.addEventListener("input",function(){ if(!busy) liveUpdate(); });
+    vEl.addEventListener("input",function(){ if(!busy) liveUpdate(); });
+    fire.addEventListener("click",shoot);
+    reset.addEventListener("click",function(){ if(raf)cancelAnimationFrame(raf); busy=false; fire.disabled=false; cap.textContent="R\u00e8gle l\u2019angle et la vitesse, puis lance le tir."; liveUpdate(); });
+    liveUpdate();
+  })();
+
+  /* ---------- ANIMATION BLINDAGE CAGE ---------- */
+  (function(){
+    var cv=id("cv-cage"); if(!cv) return; var ctx=cv.getContext("2d"); var W=cv.width,H=cv.height;
+    var cap=id("cap-cage"), nextB=id("cage-next"), resetB=id("cage-reset");
+    var captions=[
+      "Une grille (le blindage cage) est mont\u00e9e \u00e0 distance, devant le vrai blindage.",
+      "Une roquette \u00e0 charge creuse arrive : elle concentre son \u00e9nergie pour percer.",
+      "La grille pince et \u00e9crase l\u2019ogive : la fus\u00e9e ne se d\u00e9clenche pas correctement.",
+      "R\u00e9sultat : la roquette ne perce pas. Le blindage principal est prot\u00e9g\u00e9."
+    ];
+    var phase=0, prog=1, raf=null, last=captions.length-1;
+    function ease(t){ return t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2; }
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      var groundY=240;
+      ctx.fillStyle="#e7ddca"; ctx.fillRect(0,groundY,W,H-groundY);
+      ctx.strokeStyle="#c9bb9a"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,groundY); ctx.lineTo(W,groundY); ctx.stroke();
+      // caisse (droite)
+      var hullX=620;
+      ctx.fillStyle="#2E6A8E"; rr(ctx,hullX,groundY-110,230,90,12); ctx.fill();
+      ctx.fillStyle="#1f4d68"; rr(ctx,hullX,groundY-110,230,20,12); ctx.fill();
+      ctx.fillStyle="#23323d"; ctx.beginPath(); ctx.arc(hullX+50,groundY,18,0,7); ctx.fill(); ctx.beginPath(); ctx.arc(hullX+180,groundY,18,0,7); ctx.fill();
+      ctxText(ctx,"CHASSIS BLINDE",hullX+115,groundY-65,14,"#eaf3f9","center");
+      // grille (cage) a distance
+      var cageX=540;
+      ctx.strokeStyle="#5b6b75"; ctx.lineWidth=4;
+      for (var b=0;b<5;b++){ var bx=cageX+b*14; ctx.beginPath(); ctx.moveTo(bx,groundY-120); ctx.lineTo(bx,groundY-10); ctx.stroke(); }
+      ctxText(ctx,"BLINDAGE CAGE",cageX+28,groundY-134,13,"#23323d","center");
+      // cote distance
+      ctx.strokeStyle="#9fc3d8"; ctx.setLineDash([4,4]); ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(cageX+56,groundY-150); ctx.lineTo(hullX,groundY-150); ctx.stroke(); ctx.setLineDash([]);
+      ctxText(ctx,"distance de securite",(cageX+56+hullX)/2,groundY-160,11,"#2E6A8E","center");
+      // roquette
+      var startX=70, hitX=cageX-18;
+      var rx;
+      if (phase<=0){ rx=startX; }
+      else if (phase===1){ rx=startX+(hitX-startX)*prog; }
+      else { rx=hitX; }
+      if (phase<3){
+        // corps roquette
+        ctx.save();
+        ctx.fillStyle="#23323d"; rr(ctx,rx-34,groundY-78,40,16,4); ctx.fill();
+        ctx.fillStyle="#B85C2E"; ctx.beginPath(); ctx.moveTo(rx+6,groundY-70); ctx.lineTo(rx+22,groundY-70); ctx.lineTo(rx+6,groundY-86); ctx.lineTo(rx+6,groundY-54); ctx.closePath(); ctx.fill();
+        // ailettes
+        ctx.fillStyle="#445"; ctx.beginPath(); ctx.moveTo(rx-34,groundY-78); ctx.lineTo(rx-44,groundY-84); ctx.lineTo(rx-44,groundY-56); ctx.lineTo(rx-34,groundY-62); ctx.closePath(); ctx.fill();
+        ctx.restore();
+        if (phase<=1) ctxText(ctx,"ROQUETTE",rx-14,groundY-98,12,"#23323d","center");
+      }
+      // phase 2 : pincee
+      if (phase===2){
+        ctxText(ctx,"OGIVE PINCEE",cageX+28,groundY-100,13,"#c0492f","center");
+        ctxText(ctx,"FUSEE HORS SERVICE",cageX+28,groundY-84,12,"#c0492f","center");
+        arrow(ctx,cageX-10,groundY-40,cageX+30,groundY-40,"#c0492f",3);
+      }
+      // phase 3 : protege
+      if (phase===3){
+        ctx.fillStyle="rgba(255,255,255,.5)"; ctx.fillRect(cageX-10,groundY-130,90,120);
+        ctxText(ctx,"PAS DE PERCEE",cageX+30,groundY-70,14,"#2f8f5b","center");
+        ctxText(ctx,"PROTEGE",hullX+115,groundY-92,20,"#2f8f5b","center");
+      }
+      cap.textContent=captions[phase];
+    }
+    function go(p){ if(raf)cancelAnimationFrame(raf); phase=p; var start=null;
+      function step(ts){ if(start===null)start=ts; var t=Math.min(1,(ts-start)/600); prog=ease(t); draw(); if(t<1)raf=requestAnimationFrame(step); }
+      raf=requestAnimationFrame(step);
+    }
+    nextB.addEventListener("click",function(){ if(phase<last) go(phase+1); });
+    resetB.addEventListener("click",function(){ go(0); });
+    draw();
+  })();
+
+})();
+</script>
+</body>
+</html>
