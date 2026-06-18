@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V&eacute;hicules militaires &mdash; Parcours</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F8F4EC; --ink:#23323d; --ink-soft:#5b6b75;
+    --copper:#B85C2E; --copper-d:#8f4420; --steel:#2E6A8E; --steel-soft:#e2edf3;
+    --card:#fff; --line:#e7ddca; --line-d:#d9cdb3; --ok:#2f8f5b;
+    --shadow:0 10px 30px rgba(35,50,61,.08);
+    --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+    --disp:'Bricolage Grotesque',system-ui,-apple-system,Segoe UI,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--disp);font-size:18px;line-height:1.55;min-height:100vh;
+    background-image:linear-gradient(rgba(46,106,142,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(46,106,142,.04) 1px,transparent 1px);background-size:28px 28px;}
+  .page{max-width:840px;margin:0 auto;padding:0 22px 80px}
+
+  header.hero{padding:54px 0 18px}
+  .eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--copper)}
+  h1{font-size:clamp(32px,5vw,56px);line-height:1.02;letter-spacing:-.03em;margin:.1em 0 .3em;font-weight:800}
+  .lead{font-size:18px;color:var(--ink-soft);max-width:60ch;margin:0}
+
+  .progress-wrap{margin:24px 0 8px}
+  .progress-row{display:flex;align-items:center;gap:14px}
+  .progress-row .label{font-family:var(--mono);font-size:13px;color:var(--ink-soft);white-space:nowrap}
+  .bar{flex:1;height:10px;background:#fff;border:1px solid var(--line-d);border-radius:999px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--copper),var(--steel));transition:width .4s}
+
+  .cards{display:grid;gap:16px;margin-top:18px}
+  .tool{position:relative;display:flex;gap:18px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 24px;box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s;text-decoration:none;color:inherit}
+  .tool:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(35,50,61,.12)}
+  .tool .step{position:absolute;top:-10px;left:-10px;width:34px;height:34px;border-radius:50%;background:var(--copper);color:#fff;font-family:var(--mono);font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
+  .tool .ic{flex:0 0 auto;width:64px;height:64px;border-radius:16px;background:var(--steel-soft);display:flex;align-items:center;justify-content:center;font-size:30px}
+  .tool .txt{flex:1;min-width:0}
+  .tool h2{font-size:21px;margin:0 0 3px;letter-spacing:-.02em}
+  .tool p{margin:0;color:var(--ink-soft);font-size:14.5px}
+  .tool .go{flex:0 0 auto;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--steel);white-space:nowrap}
+  .tool.done{border-left:5px solid var(--ok)}
+  .tool .check{position:absolute;top:14px;right:16px;font-family:var(--mono);font-size:12px;color:var(--ok);display:none}
+  .tool.done .check{display:inline}
+
+  .donebar{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .mark{font-family:var(--disp);font-weight:600;font-size:13px;border:1px solid var(--line-d);background:#fff;color:var(--ink-soft);border-radius:999px;padding:7px 14px;cursor:pointer;transition:.12s}
+  .mark:hover{border-color:var(--steel);background:var(--steel-soft)}
+  .mark.on{background:var(--ok);color:#fff;border-color:var(--ok)}
+
+  .foot{margin-top:30px;font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);line-height:1.7;background:#fbf4ec;border:1px dashed var(--line-d);border-radius:12px;padding:14px 16px}
+  @media (max-width:560px){
+    .tool{flex-wrap:wrap}.tool .go{width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="hero">
+    <div class="eyebrow">Techno &middot; Physique &mdash; Cycle 4</div>
+    <h1>V&eacute;hicules militaires</h1>
+    <p class="lead">Le parcours complet, en quatre &eacute;tapes&nbsp;: comprendre, s&rsquo;entra&icirc;ner, manipuler et jouer, puis montrer ce qu&rsquo;on a appris. Suis l&rsquo;ordre, ou navigue librement.</p>
+    <div class="progress-wrap">
+      <div class="progress-row">
+        <span class="label" id="prog-label">0 / 4 termin&eacute;</span>
+        <span class="bar"><i id="prog-bar"></i></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="cards">
+
+    <a class="tool" data-step="1" href="cours_vehicules_militaires.html">
+      <span class="step">1</span>
+      <span class="ic">&#128218;</span>
+      <span class="txt">
+        <h2>Le cours</h2>
+        <p>D&eacute;couvre 5 engins un par un&nbsp;: vitesse, pression, blindage, flottaison, compromis.</p>
+      </span>
+      <span class="check">&#10003; fait</span>
+      <span class="go">Ouvrir &rarr;</span>
+    </a>
+
+    <a class="tool" data-step="2" href="exercices_vehicules_militaires.html">
+      <span class="step">2</span>
+      <span class="ic">&#9999;&#65039;</span>
+      <span class="txt">
+        <h2>Les exercices</h2>
+        <p>11 exercices qui se d&eacute;bloquent un par un, aide int&eacute;gr&eacute;e, et un jeu de franchissement.</p>
+      </span>
+      <span class="check">&#10003; fait</span>
+      <span class="go">Ouvrir &rarr;</span>
+    </a>
+
+    <a class="tool" data-step="3" href="simulateurs_jeux_vehicules.html">
+      <span class="step">3</span>
+      <span class="ic">&#128300;</span>
+      <span class="txt">
+        <h2>Simulateurs &amp; jeux</h2>
+        <p>Manipule la physique (pression, Archim&egrave;de, blindage, banc d&rsquo;essai) et teste tes r&eacute;flexes.</p>
+      </span>
+      <span class="check">&#10003; fait</span>
+      <span class="go">Ouvrir &rarr;</span>
+    </a>
+
+    <a class="tool" data-step="4" href="evaluation_vehicules_militaires.html">
+      <span class="step">4</span>
+      <span class="ic">&#127937;</span>
+      <span class="txt">
+        <h2>L&rsquo;&eacute;valuation</h2>
+        <p>12 questions not&eacute;es pour montrer ce que tu as compris. R&eacute;sultat envoy&eacute; au professeur.</p>
+      </span>
+      <span class="check">&#10003; fait</span>
+      <span class="go">Ouvrir &rarr;</span>
+    </a>
+
+  </div>
+
+  <div class="donebar" id="donebar">
+    <button class="mark" data-mark="1">Marquer le cours</button>
+    <button class="mark" data-mark="2">Marquer les exercices</button>
+    <button class="mark" data-mark="3">Marquer simulateurs &amp; jeux</button>
+    <button class="mark" data-mark="4">Marquer l&rsquo;&eacute;valuation</button>
+  </div>
+
+  <div class="foot">
+    Les quatre fichiers doivent &ecirc;tre dans le m&ecirc;me dossier que cette page. La progression est enregistr&eacute;e sur cet appareil (elle n&rsquo;emp&ecirc;che jamais d&rsquo;ouvrir un outil).
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "vm_parcours_done";
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch(e){ return {}; } }
+  function save(o){ try{ localStorage.setItem(KEY, JSON.stringify(o)); } catch(e){} }
+  var done = load();
+
+  var tools = document.querySelectorAll(".tool");
+  var marks = document.querySelectorAll(".mark");
+  var TOTAL = tools.length;
+
+  function refresh(){
+    var n = 0;
+    for (var i=0;i<tools.length;i++){
+      var s = tools[i].getAttribute("data-step");
+      var on = !!done[s];
+      tools[i].classList.toggle("done", on);
+      if (on) n++;
+    }
+    for (var m=0;m<marks.length;m++){
+      var k = marks[m].getAttribute("data-mark");
+      marks[m].classList.toggle("on", !!done[k]);
+      marks[m].textContent = (done[k] ? "\u2713 " : "") + marks[m].getAttribute("data-base");
+    }
+    document.getElementById("prog-label").textContent = n + " / " + TOTAL + " termin\u00e9" + (n>1?"s":"");
+    document.getElementById("prog-bar").style.width = Math.round(n/TOTAL*100) + "%";
+  }
+
+  for (var m=0;m<marks.length;m++){
+    marks[m].setAttribute("data-base", marks[m].textContent);
+    (function(btn){
+      btn.addEventListener("click", function(){
+        var k = btn.getAttribute("data-mark");
+        done[k] = !done[k];
+        save(done); refresh();
+      });
+    })(marks[m]);
+  }
+  refresh();
+})();
+</script>
+</body>
+</html>

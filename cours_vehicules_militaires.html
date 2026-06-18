@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Les v&eacute;hicules militaires &mdash; Comprendre comment &ccedil;a marche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F8F4EC;
+    --ink:#23323d;
+    --ink-soft:#5b6b75;
+    --copper:#B85C2E;
+    --copper-d:#8f4420;
+    --steel:#2E6A8E;
+    --steel-soft:#e2edf3;
+    --card:#ffffff;
+    --line:#e7ddca;
+    --line-d:#d9cdb3;
+    --ok:#2f8f5b;
+    --no:#c0492f;
+    --lock:#9a8f7a;
+    --shadow:0 10px 30px rgba(35,50,61,.08);
+    --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+    --disp:'Bricolage Grotesque',system-ui,-apple-system,Segoe UI,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:var(--disp);font-size:18px;line-height:1.55;
+    background-image:linear-gradient(rgba(46,106,142,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(46,106,142,.04) 1px,transparent 1px);
+    background-size:28px 28px;
+  }
+  .wrap{display:flex;align-items:flex-start;max-width:1280px;margin:0 auto}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    position:sticky;top:0;height:100vh;width:268px;flex:0 0 268px;
+    padding:26px 18px;border-right:1px solid var(--line);
+    background:rgba(248,244,236,.86);backdrop-filter:blur(4px);overflow:auto;
+  }
+  .brand{font-weight:800;font-size:20px;letter-spacing:-.02em;line-height:1.1}
+  .brand small{display:block;font-family:var(--mono);font-weight:500;font-size:11px;color:var(--copper);letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
+  .progress{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin:14px 0 18px;padding:6px 10px;border:1px dashed var(--line-d);border-radius:8px;display:inline-block}
+  .side-nav{list-style:none;margin:0;padding:0;counter-reset:s}
+  .side-link{
+    display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;cursor:pointer;
+    background:none;border:0;border-radius:10px;padding:9px 10px;margin-bottom:2px;
+    font-family:var(--disp);font-size:14.5px;color:var(--ink);transition:background .15s,color .15s;
+  }
+  .side-link:hover{background:var(--steel-soft)}
+  .side-link .num{counter-increment:s;font-family:var(--mono);font-size:12px;color:var(--copper);font-weight:700;min-width:20px;padding-top:1px}
+  .side-link.active{background:var(--steel);color:#fff}
+  .side-link.active .num{color:#cfe3f0}
+  .side-link.is-locked{color:var(--lock);cursor:not-allowed}
+  .side-link.is-locked .num{color:var(--lock)}
+  .side-link .lk{margin-left:auto;font-size:12px;opacity:.7;display:none}
+  .side-link.is-locked .lk{display:inline}
+  .side-tip{margin-top:20px;font-family:var(--mono);font-size:11px;color:var(--ink-soft);line-height:1.7}
+  .kbd{display:inline-block;border:1px solid var(--line-d);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:#fff;font-size:11px}
+
+  /* ---------- MAIN ---------- */
+  .main{flex:1 1 auto;min-width:0}
+  .slide{position:relative;padding:64px 60px;border-bottom:1px solid var(--line);min-height:96vh;display:flex;flex-direction:column;justify-content:center}
+  .slide:first-child{min-height:100vh}
+  .eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--copper)}
+  h1{font-size:clamp(34px,4.6vw,58px);line-height:1.02;letter-spacing:-.03em;margin:.1em 0 .35em;font-weight:800}
+  h2{font-size:clamp(28px,3.4vw,42px);line-height:1.05;letter-spacing:-.025em;margin:.1em 0 .3em;font-weight:800}
+  h3{font-size:20px;margin:0 0 .4em;letter-spacing:-.01em}
+  .lead{font-size:clamp(18px,1.7vw,21px);color:var(--ink-soft);max-width:62ch;margin:.2em 0 0}
+
+  /* discover / mission cards */
+  .mission{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 6px}
+  .tag{font-family:var(--mono);font-size:13px;background:#fff;border:1px solid var(--line-d);border-radius:999px;padding:7px 14px;display:flex;align-items:center;gap:8px}
+  .tag b{color:var(--steel)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--copper)}
+
+  /* function grid (intro) */
+  .fgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:30px}
+  .fcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 16px;box-shadow:var(--shadow);transition:transform .15s}
+  .fcard:hover{transform:translateY(-3px)}
+  .fcard svg{display:block;margin-bottom:10px}
+  .fcard h4{margin:0 0 4px;font-size:15.5px;letter-spacing:-.01em}
+  .fcard p{margin:0;font-size:13px;color:var(--ink-soft);line-height:1.4}
+
+  /* animation block */
+  .anim{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:18px;margin:26px 0 8px;max-width:1000px}
+  .anim canvas{width:100%;height:auto;display:block;background:linear-gradient(#fbfdff,#f3f8fb);border:1px solid var(--line);border-radius:14px}
+  .anim-bar{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+  .anim-caption{flex:1 1 320px;min-height:48px;font-size:16px;color:var(--ink);line-height:1.45}
+  .btn{font-family:var(--disp);font-weight:600;font-size:15px;border:0;border-radius:11px;padding:11px 18px;cursor:pointer;transition:transform .1s,filter .15s}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--copper);color:#fff}
+  .btn-primary:hover{filter:brightness(1.06)}
+  .btn-ghost{background:#fff;color:var(--steel);border:1px solid var(--line-d)}
+  .btn-ghost:hover{background:var(--steel-soft)}
+
+  /* retain card */
+  .retain{display:flex;gap:16px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-left:5px solid var(--copper);border-radius:14px;padding:18px 22px;margin:24px 0 4px;max-width:1000px;box-shadow:var(--shadow)}
+  .retain .ic{font-family:var(--mono);font-weight:700;color:var(--copper);font-size:13px;letter-spacing:.1em;white-space:nowrap;padding-top:3px}
+  .retain p{margin:0;font-size:17px}
+  .formula{font-family:var(--mono);font-weight:700;color:var(--steel);background:var(--steel-soft);padding:2px 10px;border-radius:7px;display:inline-block}
+  .punch{color:var(--copper-d);font-weight:600}
+
+  /* dual-use chips + waves + triangle */
+  .chips{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0}
+  .chip{background:#fff;border:1px solid var(--line-d);border-radius:14px;padding:14px 16px;max-width:230px;box-shadow:var(--shadow)}
+  .chip .yr{font-family:var(--mono);font-size:12px;color:var(--copper);font-weight:700}
+  .chip h4{margin:3px 0 4px;font-size:16px}
+  .chip p{margin:0;font-size:13px;color:var(--ink-soft);line-height:1.4}
+  .two-col{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;margin-top:18px}
+  .tri-wrap{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow)}
+
+  /* quiz */
+  .quiz{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px 24px;margin:30px 0 0;max-width:760px;box-shadow:var(--shadow)}
+  .quiz .qlabel{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--copper);font-weight:700}
+  .quiz .q{font-size:19px;font-weight:600;margin:8px 0 16px;letter-spacing:-.01em}
+  .opts{display:grid;gap:10px}
+  .opt{font-family:var(--disp);font-size:16px;text-align:left;background:#fbfaf6;border:1.5px solid var(--line-d);border-radius:12px;padding:13px 16px;cursor:pointer;transition:border-color .15s,background .15s,transform .08s}
+  .opt:hover:not(:disabled){border-color:var(--steel);background:var(--steel-soft)}
+  .opt:disabled{cursor:default}
+  .opt.right{border-color:var(--ok);background:#e9f6ee;color:#1f6b40;font-weight:600}
+  .opt.wrong{border-color:var(--no);background:#fbe9e5;animation:shake .35s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .feedback{min-height:24px;margin:14px 0 0;font-size:15px;font-weight:600}
+  .feedback.ok{color:var(--ok)}
+  .feedback.no{color:var(--no)}
+  .continue{margin-top:14px;background:var(--steel);color:#fff;display:inline-flex;align-items:center;gap:8px}
+  .continue:hover{filter:brightness(1.07)}
+
+  /* lock overlay */
+  .lock-badge{display:none;position:absolute;inset:0;z-index:5;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(248,244,236,.55);backdrop-filter:blur(2px)}
+  .lock-badge .pill{background:#fff;border:1px solid var(--line-d);border-radius:999px;padding:12px 22px;font-family:var(--mono);font-size:14px;color:var(--lock);box-shadow:var(--shadow);display:flex;gap:10px;align-items:center}
+  .slide.locked .lock-badge{display:flex}
+  .slide.locked .slide-inner{filter:blur(7px) grayscale(.45);opacity:.45;pointer-events:none;user-select:none}
+
+  /* finish banner */
+  .finish{display:none;margin-top:26px;background:linear-gradient(135deg,#fff,#fef4ec);border:1px solid var(--copper);border-radius:18px;padding:22px 26px;max-width:760px;box-shadow:var(--shadow)}
+  .finish.show{display:block;animation:pop .4s}
+  @keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+  .finish h3{color:var(--copper-d)}
+
+  /* small rolling vehicle (obj1) */
+  .road{position:relative;height:120px;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:22px;max-width:1000px;box-shadow:var(--shadow)}
+  .road .line{position:absolute;left:0;right:0;bottom:34px;height:3px;background:repeating-linear-gradient(90deg,var(--line-d) 0 22px,transparent 22px 44px)}
+  .veh{position:absolute;bottom:30px;left:-180px;animation:drive 5s linear infinite}
+  @keyframes drive{0%{left:-180px}100%{left:100%}}
+  .speedtag{position:absolute;top:12px;right:16px;font-family:var(--mono);font-size:13px;color:var(--steel);background:var(--steel-soft);padding:4px 10px;border-radius:8px}
+
+  @media (prefers-reduced-motion: reduce){
+    .veh{animation:none;left:40px}
+    *{scroll-behavior:auto}
+  }
+
+  /* responsive */
+  @media (max-width: 980px){
+    .wrap{flex-direction:column}
+    .sidebar{position:sticky;top:0;height:auto;width:100%;flex:none;display:flex;align-items:center;gap:14px;overflow-x:auto;padding:12px 14px;white-space:nowrap;z-index:20;border-right:0;border-bottom:1px solid var(--line)}
+    .brand{flex:0 0 auto}.progress{display:none}.side-tip{display:none}
+    .side-nav{display:flex;gap:4px}.side-link{flex:0 0 auto;font-size:13px}.side-link .lk{display:none!important}
+    .slide{padding:46px 22px;min-height:auto}
+    .fgrid{grid-template-columns:repeat(2,1fr)}
+    .two-col{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <nav class="sidebar" aria-label="Sommaire du cours">
+    <div class="brand"><small>Techno &middot; Physique</small>V&eacute;hicules militaires</div>
+    <div class="progress" id="progress">&Eacute;tape 1 / 7</div>
+    <ul class="side-nav">
+      <li><button class="side-link" data-i="0"><span class="num"></span><span>Pour quoi faire&nbsp;?</span><span class="lk">&#128274;</span></button></li>
+      <li><button class="side-link" data-i="1"><span class="num"></span><span>Le blind&eacute; &agrave; roues</span><span class="lk">&#128274;</span></button></li>
+      <li><button class="side-link" data-i="2"><span class="num"></span><span>Le char &mdash; la pression</span><span class="lk">&#128274;</span></button></li>
+      <li><button class="side-link" data-i="3"><span class="num"></span><span>Le blindage</span><span class="lk">&#128274;</span></button></li>
+      <li><button class="side-link" data-i="4"><span class="num"></span><span>L&rsquo;amphibie &mdash; flotter</span><span class="lk">&#128274;</span></button></li>
+      <li><button class="side-link" data-i="5"><span class="num"></span><span>Drone &amp; robot</span><span class="lk">&#128274;</span></button></li>
+      <li><button class="side-link" data-i="6"><span class="num"></span><span>Synth&egrave;se</span><span class="lk">&#128274;</span></button></li>
+    </ul>
+    <div class="side-tip">
+      <span class="kbd">&uarr;</span> <span class="kbd">&darr;</span> pour naviguer.<br>
+      R&eacute;ponds au mini-quiz pour d&eacute;bloquer l&rsquo;objet suivant.
+    </div>
+  </nav>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="main">
+
+    <!-- ---------- SECTION 0 : INTRO ---------- -->
+    <section class="slide" id="sec-0">
+      <div class="lock-badge"><div class="pill">&#128274; Termine l&rsquo;&eacute;tape pr&eacute;c&eacute;dente</div></div>
+      <div class="slide-inner">
+        <div class="eyebrow">Mise en route</div>
+        <h1>Comprendre un v&eacute;hicule,<br>pas seulement le regarder.</h1>
+        <p class="lead">On va d&eacute;couvrir <b>5 engins</b>, un par un. Pour chacun&nbsp;: ce que c&rsquo;est, <b>comment &ccedil;a marche</b> (la physique cach&eacute;e dedans), et <b>pourquoi</b> il est con&ccedil;u comme &ccedil;a. Premi&egrave;re id&eacute;e&nbsp;: la forme d&rsquo;un v&eacute;hicule est dict&eacute;e par sa <b>mission</b>.</p>
+
+        <div class="fgrid">
+          <div class="fcard">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="12" cy="30" r="5" stroke="#2E6A8E" stroke-width="2.5"/><circle cx="28" cy="30" r="5" stroke="#2E6A8E" stroke-width="2.5"/><path d="M5 25h30l-4-9H11l-6 9z" stroke="#B85C2E" stroke-width="2.5" stroke-linejoin="round"/></svg>
+            <h4>Se d&eacute;placer</h4><p>Aller vite, partout, sur tout terrain.</p>
+          </div>
+          <div class="fcard">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 5l13 5v9c0 9-6 14-13 16-7-2-13-7-13-16v-9l13-5z" stroke="#B85C2E" stroke-width="2.5" stroke-linejoin="round"/></svg>
+            <h4>Se prot&eacute;ger</h4><p>R&eacute;sister aux chocs, garder l&rsquo;&eacute;quipage en vie.</p>
+          </div>
+          <div class="fcard">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="18" cy="18" r="11" stroke="#2E6A8E" stroke-width="2.5"/><path d="M26 26l8 8" stroke="#B85C2E" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <h4>Observer</h4><p>Voir l&rsquo;adversaire, rep&eacute;rer, renseigner.</p>
+          </div>
+          <div class="fcard">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M6 26c6-14 22-14 28 0" stroke="#2E6A8E" stroke-width="2.5" stroke-linecap="round"/><path d="M14 26c2-7 10-7 12 0" stroke="#B85C2E" stroke-width="2.5" stroke-linecap="round"/><circle cx="20" cy="28" r="2.5" fill="#23323d"/></svg>
+            <h4>Franchir</h4><p>Passer un foss&eacute;, une rivi&egrave;re, un obstacle.</p>
+          </div>
+          <div class="fcard">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="13" y="16" width="14" height="11" rx="2" stroke="#2E6A8E" stroke-width="2.5"/><path d="M20 16V9" stroke="#23323d" stroke-width="2.5"/><circle cx="20" cy="7" r="2.5" fill="#B85C2E"/><path d="M9 31h22" stroke="#B85C2E" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <h4>Agir &agrave; distance</h4><p>&Eacute;loigner l&rsquo;humain du danger (robots, drones).</p>
+          </div>
+        </div>
+
+        <div class="quiz" data-obj="0">
+          <div class="qlabel">Mini-quiz &middot; pour d&eacute;marrer</div>
+          <p class="q">Parmi ces besoins, lequel est une <b>fonction</b> d&rsquo;un v&eacute;hicule militaire&nbsp;?</p>
+          <div class="opts">
+            <button class="opt" data-correct="false">Avoir une belle couleur</button>
+            <button class="opt" data-correct="false">Faire le plus de bruit possible</button>
+            <button class="opt" data-correct="true">Se d&eacute;placer, se prot&eacute;ger, observer&hellip;</button>
+          </div>
+          <p class="feedback" aria-live="polite"></p>
+          <button class="btn continue" hidden>Continuer vers l&rsquo;objet 1 &darr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SECTION 1 : ROUES / VITESSE ---------- -->
+    <section class="slide" id="sec-1">
+      <div class="lock-badge"><div class="pill">&#128274; Termine l&rsquo;&eacute;tape pr&eacute;c&eacute;dente</div></div>
+      <div class="slide-inner">
+        <div class="eyebrow">Objet 1 &middot; Se d&eacute;placer</div>
+        <h2>Le blind&eacute; &agrave; roues</h2>
+        <p class="lead">Un v&eacute;hicule de transport de troupes&nbsp;: il emm&egrave;ne des soldats vite et loin, surtout sur <b>route</b>. Comme une voiture, il roule sur des <b>pneus</b> &mdash; rapide sur le bitume, mais plus limit&eacute; dans la boue.</p>
+
+        <div class="mission">
+          <span class="tag"><span class="dot"></span> Mission&nbsp;: <b>transporter</b></span>
+          <span class="tag"><span class="dot"></span> Atout&nbsp;: <b>la vitesse sur route</b></span>
+          <span class="tag"><span class="dot"></span> Limite&nbsp;: <b>tout-terrain</b></span>
+        </div>
+
+        <div class="road" aria-hidden="true">
+          <span class="speedtag">&asymp; 100 km/h</span>
+          <div class="line"></div>
+          <svg class="veh" width="160" height="64" viewBox="0 0 160 64" fill="none">
+            <path d="M6 44h138l-10-20H78l-8-10H30l-6 30z" fill="#2E6A8E"/>
+            <rect x="36" y="20" width="30" height="14" rx="2" fill="#cfe3f0"/>
+            <circle cx="44" cy="48" r="11" fill="#23323d"/><circle cx="44" cy="48" r="4" fill="#9aa6ad"/>
+            <circle cx="116" cy="48" r="11" fill="#23323d"/><circle cx="116" cy="48" r="4" fill="#9aa6ad"/>
+          </svg>
+        </div>
+
+        <div class="retain">
+          <span class="ic">&Agrave; RETENIR</span>
+          <p>La vitesse se calcule&nbsp;: <span class="formula">v = distance &divide; temps</span>. Exemple&nbsp;: 100&nbsp;km/h, c&rsquo;est environ <b>28 m&eacute;tres parcourus chaque seconde</b>. Les roues = <span class="punch">rapide sur route</span>, mais &ccedil;a s&rsquo;enfonce vite hors des chemins.</p>
+        </div>
+
+        <div class="quiz" data-obj="1">
+          <div class="qlabel">Mini-quiz &middot; objet 1</div>
+          <p class="q">Comment calcule-t-on la <b>vitesse</b> du v&eacute;hicule&nbsp;?</p>
+          <div class="opts">
+            <button class="opt" data-correct="false">temps &divide; distance</button>
+            <button class="opt" data-correct="true">distance &divide; temps</button>
+            <button class="opt" data-correct="false">distance &times; temps</button>
+          </div>
+          <p class="feedback" aria-live="polite"></p>
+          <button class="btn continue" hidden>Continuer vers l&rsquo;objet 2 &darr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SECTION 2 : CHAR / PRESSION ---------- -->
+    <section class="slide" id="sec-2">
+      <div class="lock-badge"><div class="pill">&#128274; Termine l&rsquo;&eacute;tape pr&eacute;c&eacute;dente</div></div>
+      <div class="slide-inner">
+        <div class="eyebrow">Objet 2 &middot; La star de la physique</div>
+        <h2>Le char de combat</h2>
+        <p class="lead">Un char p&egrave;se environ <b>56 tonnes</b> &mdash; le poids de 40 voitures&nbsp;! Pourtant, il avance dans la boue sans s&rsquo;enfoncer. Le secret est cach&eacute; sous ses <b>chenilles</b>. C&rsquo;est une histoire de <b>pression</b>.</p>
+
+        <div class="mission">
+          <span class="tag"><span class="dot"></span> Mission&nbsp;: <b>combattre, aller partout</b></span>
+          <span class="tag"><span class="dot"></span> Cl&eacute; physique&nbsp;: <b>P = F / S</b></span>
+        </div>
+
+        <div class="anim">
+          <canvas id="cv-pression" width="960" height="460" role="img" aria-label="Animation comparant des roues et des chenilles sur la boue"></canvas>
+          <div class="anim-bar">
+            <p class="anim-caption" id="cap-pression"></p>
+            <button class="btn btn-ghost anim-reset">&#8635; Revoir</button>
+            <button class="btn btn-primary anim-next">&Eacute;tape suivante &rarr;</button>
+          </div>
+        </div>
+
+        <div class="retain">
+          <span class="ic">&Agrave; RETENIR</span>
+          <p><span class="formula">Pression&nbsp;P = Force&nbsp;F &divide; Surface&nbsp;S</span> &mdash; &agrave; poids &eacute;gal, <b>plus la surface d&rsquo;appui est grande, plus la pression est faible</b>. Les chenilles &eacute;talent les 56&nbsp;tonnes sur une &eacute;norme surface. R&eacute;sultat&nbsp;: <span class="punch">le char appuie moins fort sur le sol qu&rsquo;un talon aiguille&nbsp;!</span> (&asymp; 0,9 bar contre &asymp; 60 bar).</p>
+        </div>
+
+        <div class="quiz" data-obj="2">
+          <div class="qlabel">Mini-quiz &middot; objet 2</div>
+          <p class="q">Pourquoi un char de 56&nbsp;tonnes ne s&rsquo;enfonce-t-il pas dans la boue&nbsp;?</p>
+          <div class="opts">
+            <button class="opt" data-correct="false">Parce qu&rsquo;il est tr&egrave;s l&eacute;ger en r&eacute;alit&eacute;</button>
+            <button class="opt" data-correct="true">Ses chenilles r&eacute;partissent le poids sur une grande surface</button>
+            <button class="opt" data-correct="false">Parce qu&rsquo;il va tr&egrave;s vite</button>
+          </div>
+          <p class="feedback" aria-live="polite"></p>
+          <button class="btn continue" hidden>Continuer vers l&rsquo;objet 3 &darr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SECTION 3 : BLINDAGE ---------- -->
+    <section class="slide" id="sec-3">
+      <div class="lock-badge"><div class="pill">&#128274; Termine l&rsquo;&eacute;tape pr&eacute;c&eacute;dente</div></div>
+      <div class="slide-inner">
+        <div class="eyebrow">Objet 3 &middot; Se prot&eacute;ger</div>
+        <h2>Le blindage</h2>
+        <p class="lead">Prot&eacute;ger l&rsquo;&eacute;quipage sans alourdir le v&eacute;hicule&nbsp;: tout l&rsquo;art du blindage. Deux astuces d&rsquo;ing&eacute;nieur&nbsp;: choisir les bons <b>mat&eacute;riaux</b> (acier, c&eacute;ramique, composite en &laquo;&nbsp;mille-feuille&nbsp;&raquo;) et surtout <b>incliner</b> les plaques.</p>
+
+        <div class="mission">
+          <span class="tag"><span class="dot"></span> Mission&nbsp;: <b>arr&ecirc;ter les projectiles</b></span>
+          <span class="tag"><span class="dot"></span> Astuce&nbsp;: <b>la g&eacute;om&eacute;trie</b></span>
+        </div>
+
+        <div class="anim">
+          <canvas id="cv-blindage" width="960" height="420" role="img" aria-label="Animation comparant un blindage droit et un blindage incliné"></canvas>
+          <div class="anim-bar">
+            <p class="anim-caption" id="cap-blindage"></p>
+            <button class="btn btn-ghost anim-reset">&#8635; Revoir</button>
+            <button class="btn btn-primary anim-next">&Eacute;tape suivante &rarr;</button>
+          </div>
+        </div>
+
+        <div class="retain">
+          <span class="ic">&Agrave; RETENIR</span>
+          <p>Incliner une plaque <b>allonge le trajet</b> que le projectile doit traverser&nbsp;: l&rsquo;&eacute;paisseur &laquo;&nbsp;vue&nbsp;&raquo; augmente (jusqu&rsquo;&agrave; <b>2 fois</b> &agrave; 60&deg;) <span class="punch">sans ajouter un gramme de poids</span>. Et le <b>composite</b> empile plusieurs mat&eacute;riaux pour casser l&rsquo;impact.</p>
+        </div>
+
+        <div class="quiz" data-obj="3">
+          <div class="qlabel">Mini-quiz &middot; objet 3</div>
+          <p class="q">Quel est l&rsquo;int&eacute;r&ecirc;t d&rsquo;<b>incliner</b> le blindage&nbsp;?</p>
+          <div class="opts">
+            <button class="opt" data-correct="false">&Ccedil;a rend le char plus joli</button>
+            <button class="opt" data-correct="true">Le projectile doit traverser plus de mati&egrave;re</button>
+            <button class="opt" data-correct="false">&Ccedil;a all&egrave;ge le moteur</button>
+          </div>
+          <p class="feedback" aria-live="polite"></p>
+          <button class="btn continue" hidden>Continuer vers l&rsquo;objet 4 &darr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SECTION 4 : AMPHIBIE / ARCHIMEDE ---------- -->
+    <section class="slide" id="sec-4">
+      <div class="lock-badge"><div class="pill">&#128274; Termine l&rsquo;&eacute;tape pr&eacute;c&eacute;dente</div></div>
+      <div class="slide-inner">
+        <div class="eyebrow">Objet 4 &middot; Franchir</div>
+        <h2>Le v&eacute;hicule amphibie</h2>
+        <p class="lead">Pas de pont&nbsp;? Pas de probl&egrave;me. Certains v&eacute;hicules traversent une rivi&egrave;re en <b>flottant</b>. Comment un engin aussi lourd peut-il rester &agrave; la surface&nbsp;? Gr&acirc;ce &agrave; la <b>pouss&eacute;e d&rsquo;Archim&egrave;de</b>.</p>
+
+        <div class="mission">
+          <span class="tag"><span class="dot"></span> Mission&nbsp;: <b>traverser l&rsquo;eau</b></span>
+          <span class="tag"><span class="dot"></span> Cl&eacute; physique&nbsp;: <b>pouss&eacute;e d&rsquo;Archim&egrave;de</b></span>
+        </div>
+
+        <div class="anim">
+          <canvas id="cv-flott" width="960" height="460" role="img" aria-label="Animation d'un véhicule amphibie qui flotte"></canvas>
+          <div class="anim-bar">
+            <p class="anim-caption" id="cap-flott"></p>
+            <button class="btn btn-ghost anim-reset">&#8635; Revoir</button>
+            <button class="btn btn-primary anim-next">&Eacute;tape suivante &rarr;</button>
+          </div>
+        </div>
+
+        <div class="retain">
+          <span class="ic">&Agrave; RETENIR</span>
+          <p>Un objet <b>flotte</b> quand la pouss&eacute;e de l&rsquo;eau &eacute;gale (ou d&eacute;passe) son poids. Le secret du v&eacute;hicule amphibie&nbsp;: une <b>coque &eacute;tanche remplie d&rsquo;air</b>. Ce grand volume <span class="punch">d&eacute;place beaucoup d&rsquo;eau</span>, donc l&rsquo;eau pousse fort vers le haut.</p>
+        </div>
+
+        <div class="quiz" data-obj="4">
+          <div class="qlabel">Mini-quiz &middot; objet 4</div>
+          <p class="q">Comment un v&eacute;hicule lourd peut-il <b>flotter</b>&nbsp;?</p>
+          <div class="opts">
+            <button class="opt" data-correct="false">Parce que le m&eacute;tal flotte naturellement</button>
+            <button class="opt" data-correct="true">Sa coque &eacute;tanche enferme un grand volume d&rsquo;air</button>
+            <button class="opt" data-correct="false">Parce qu&rsquo;il roule tr&egrave;s vite sur l&rsquo;eau</button>
+          </div>
+          <p class="feedback" aria-live="polite"></p>
+          <button class="btn continue" hidden>Continuer vers l&rsquo;objet 5 &darr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SECTION 5 : DRONE & ROBOT ---------- -->
+    <section class="slide" id="sec-5">
+      <div class="lock-badge"><div class="pill">&#128274; Termine l&rsquo;&eacute;tape pr&eacute;c&eacute;dente</div></div>
+      <div class="slide-inner">
+        <div class="eyebrow">Objet 5 &middot; Observer &amp; agir &agrave; distance</div>
+        <h2>Drone &amp; robot</h2>
+        <p class="lead">Le plus moderne des engins ne transporte personne. Le <b>drone</b> observe le terrain depuis le ciel&nbsp;; le <b>robot de d&eacute;minage</b> va d&eacute;samorcer un danger &mdash; tous deux pilot&eacute;s &agrave; distance. L&rsquo;id&eacute;e&nbsp;: <b>&eacute;loigner l&rsquo;humain du danger</b>.</p>
+
+        <div class="two-col">
+          <div>
+            <div class="mission">
+              <span class="tag"><span class="dot"></span> <b>Capteurs</b> (cam&eacute;ra, radar)</span>
+              <span class="tag"><span class="dot"></span> <b>Liaison sans fil</b></span>
+              <span class="tag"><span class="dot"></span> <b>Op&eacute;rateur &agrave; l&rsquo;abri</b></span>
+            </div>
+            <svg width="100%" height="160" viewBox="0 0 420 160" fill="none" aria-label="Signal sans fil entre un opérateur et un robot">
+              <!-- operator -->
+              <rect x="14" y="96" width="58" height="40" rx="6" fill="#2E6A8E"/>
+              <rect x="24" y="104" width="38" height="22" rx="3" fill="#cfe3f0"/>
+              <text x="43" y="150" font-family="JetBrains Mono, monospace" font-size="11" fill="#5b6b75" text-anchor="middle">op&eacute;rateur</text>
+              <!-- waves -->
+              <g stroke="#B85C2E" stroke-width="3" fill="none" stroke-linecap="round">
+                <path d="M120 116c20-20 40-20 60 0"><animate attributeName="opacity" values="0;1;0" dur="2s" begin="0s" repeatCount="indefinite"/></path>
+                <path d="M150 116c20-26 50-26 70 0"><animate attributeName="opacity" values="0;1;0" dur="2s" begin="0.5s" repeatCount="indefinite"/></path>
+                <path d="M180 116c24-32 60-32 84 0"><animate attributeName="opacity" values="0;1;0" dur="2s" begin="1s" repeatCount="indefinite"/></path>
+              </g>
+              <!-- robot -->
+              <rect x="320" y="100" width="80" height="34" rx="4" fill="#23323d"/>
+              <circle cx="338" cy="138" r="8" fill="#5b6b75"/><circle cx="382" cy="138" r="8" fill="#5b6b75"/>
+              <rect x="350" y="84" width="6" height="18" fill="#B85C2E"/><circle cx="353" cy="82" r="4" fill="#B85C2E"/>
+              <text x="360" y="156" font-family="JetBrains Mono, monospace" font-size="11" fill="#5b6b75" text-anchor="middle">robot</text>
+            </svg>
+          </div>
+          <div>
+            <h3 style="margin-bottom:10px">N&eacute; militaire&hellip; devenu quotidien</h3>
+            <p style="font-size:14.5px;color:var(--ink-soft);margin:0 0 14px">Beaucoup d&rsquo;objets de tous les jours viennent de besoins militaires. On dit qu&rsquo;ils ont un <b>double usage</b>.</p>
+            <div class="chips">
+              <div class="chip"><div class="yr">~1800</div><h4>La conserve</h4><p>Invent&eacute;e pour nourrir les arm&eacute;es&hellip; aujourd&rsquo;hui dans ton placard.</p></div>
+              <div class="chip"><div class="yr">~1970</div><h4>Internet</h4><p>N&eacute; d&rsquo;un r&eacute;seau de recherche militaire (ARPANET).</p></div>
+              <div class="chip"><div class="yr">~1990</div><h4>Le GPS</h4><p>Syst&egrave;me de localisation militaire&hellip; dans ton t&eacute;l&eacute;phone.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="retain">
+          <span class="ic">&Agrave; RETENIR</span>
+          <p>Drones et robots permettent d&rsquo;<b>observer et d&rsquo;agir sans risquer une vie humaine</b>. Ils s&rsquo;appuient sur des <b>capteurs</b> et une <b>liaison sans fil</b>. Et beaucoup de technologies militaires sont devenues <span class="punch">des objets de notre quotidien</span>.</p>
+        </div>
+
+        <div class="quiz" data-obj="5">
+          <div class="qlabel">Mini-quiz &middot; objet 5</div>
+          <p class="q">Quel est le principal int&eacute;r&ecirc;t d&rsquo;un <b>robot de d&eacute;minage</b> t&eacute;l&eacute;command&eacute;&nbsp;?</p>
+          <div class="opts">
+            <button class="opt" data-correct="true">&Eacute;loigner l&rsquo;humain du danger</button>
+            <button class="opt" data-correct="false">Faire des photos souvenirs</button>
+            <button class="opt" data-correct="false">Aller plus vite qu&rsquo;un avion</button>
+          </div>
+          <p class="feedback" aria-live="polite"></p>
+          <button class="btn continue" hidden>Continuer vers la synth&egrave;se &darr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SECTION 6 : SYNTHESE ---------- -->
+    <section class="slide" id="sec-6">
+      <div class="lock-badge"><div class="pill">&#128274; Termine l&rsquo;&eacute;tape pr&eacute;c&eacute;dente</div></div>
+      <div class="slide-inner">
+        <div class="eyebrow">Synth&egrave;se</div>
+        <h2>Le compromis du concepteur</h2>
+        <p class="lead">Tu l&rsquo;as vu objet par objet&nbsp;: chaque engin est un <b>choix</b>. On ne peut pas tout avoir &agrave; la fois. C&rsquo;est le c&oelig;ur du m&eacute;tier d&rsquo;ing&eacute;nieur&nbsp;: <b>trouver le bon &eacute;quilibre</b>.</p>
+
+        <div class="two-col">
+          <div class="tri-wrap">
+            <svg width="100%" height="280" viewBox="0 0 360 280" aria-label="Triangle du compromis protection mobilité fonction">
+              <polygon points="180,30 330,250 30,250" fill="none" stroke="#2E6A8E" stroke-width="2.5" stroke-linejoin="round"/>
+              <line x1="180" y1="30" x2="180" y2="170" stroke="#e7ddca" stroke-width="2"/>
+              <line x1="30" y1="250" x2="180" y2="170" stroke="#e7ddca" stroke-width="2"/>
+              <line x1="330" y1="250" x2="180" y2="170" stroke="#e7ddca" stroke-width="2"/>
+              <circle cx="180" cy="170" r="7" fill="#B85C2E"/>
+              <g font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="17" fill="#23323d" text-anchor="middle">
+                <text x="180" y="20">Protection</text>
+                <text x="22" y="270">Mobilit&eacute;</text>
+                <text x="338" y="270">Fonction</text>
+              </g>
+            </svg>
+          </div>
+          <div>
+            <h3>Plus de tout = moins d&rsquo;autre chose</h3>
+            <p style="color:var(--ink-soft);font-size:15.5px">Ajouter du <b>blindage</b> &rarr; le v&eacute;hicule devient plus <b>lourd</b> &rarr; il va moins <b>vite</b> et consomme plus d&rsquo;&eacute;nergie. Un drone l&eacute;ger observe tr&egrave;s bien&hellip; mais ne prot&egrave;ge personne. <b>Chaque engin privil&eacute;gie une ou deux pointes du triangle</b>, selon sa mission.</p>
+          </div>
+        </div>
+
+        <div class="retain">
+          <span class="ic">&Agrave; R&Eacute;FL&Eacute;CHIR</span>
+          <p>Ces objets sont con&ccedil;us pour <b>prot&eacute;ger</b> ou pour <b>causer des d&eacute;g&acirc;ts</b>&nbsp;: leur d&eacute;veloppement soul&egrave;ve des <b>questions</b> que la soci&eacute;t&eacute; doit se poser. En m&ecirc;me temps, beaucoup de leurs technologies passent du monde militaire au monde civil. <span class="punch">&Agrave; toi de te faire ton avis, avec des arguments.</span></p>
+        </div>
+
+        <div class="quiz" data-obj="6">
+          <div class="qlabel">Mini-quiz &middot; synth&egrave;se</div>
+          <p class="q">Si on ajoute beaucoup de blindage &agrave; un v&eacute;hicule, il devient&hellip;</p>
+          <div class="opts">
+            <button class="opt" data-correct="false">plus l&eacute;ger et plus rapide</button>
+            <button class="opt" data-correct="true">plus lourd, donc moins rapide</button>
+            <button class="opt" data-correct="false">invisible aux radars</button>
+          </div>
+          <p class="feedback" aria-live="polite"></p>
+        </div>
+
+        <div class="finish" id="finish">
+          <h3>&#127881; Cours termin&eacute;&nbsp;!</h3>
+          <p style="margin:.3em 0 0">Tu as d&eacute;couvert 5 engins et 5 grandes id&eacute;es&nbsp;: la <b>vitesse</b>, la <b>pression</b>, le <b>blindage</b>, la <b>flottaison</b> et le <b>compromis</b> de conception. Pr&ecirc;t pour les exercices&nbsp;?</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- NAVIGATION & DEVERROUILLAGE ---------------- */
+  var SECTIONS = Array.prototype.slice.call(document.querySelectorAll("section.slide"));
+  var LINKS = Array.prototype.slice.call(document.querySelectorAll(".side-link"));
+  var progressEl = document.getElementById("progress");
+  var TOTAL = SECTIONS.length;
+  var maxUnlocked = 0;
+
+  function refresh(){
+    for (var i=0;i<SECTIONS.length;i++){
+      SECTIONS[i].classList.toggle("locked", i > maxUnlocked);
+    }
+    for (var j=0;j<LINKS.length;j++){
+      var locked = j > maxUnlocked;
+      LINKS[j].classList.toggle("is-locked", locked);
+      LINKS[j].setAttribute("aria-disabled", locked ? "true" : "false");
+    }
+    if (progressEl){
+      progressEl.textContent = "\u00c9tape " + (Math.min(maxUnlocked, TOTAL-1)+1) + " / " + TOTAL;
+    }
+  }
+  function unlock(i){
+    if (i > maxUnlocked && i < TOTAL){ maxUnlocked = i; refresh(); }
+  }
+  function goTo(i){
+    if (i < 0 || i >= TOTAL || i > maxUnlocked) return;
+    SECTIONS[i].scrollIntoView({behavior:"smooth", block:"start"});
+  }
+
+  for (var k=0;k<LINKS.length;k++){
+    (function(idx){
+      LINKS[idx].addEventListener("click", function(){ goTo(idx); });
+    })(k);
+  }
+
+  /* surlignage de l'objet courant */
+  if ("IntersectionObserver" in window){
+    var obs = new IntersectionObserver(function(entries){
+      for (var e=0;e<entries.length;e++){
+        if (entries[e].isIntersecting){
+          var idx = SECTIONS.indexOf(entries[e].target);
+          for (var l=0;l<LINKS.length;l++){ LINKS[l].classList.toggle("active", l === idx); }
+        }
+      }
+    }, {rootMargin:"-45% 0px -45% 0px", threshold:0});
+    for (var s=0;s<SECTIONS.length;s++){ obs.observe(SECTIONS[s]); }
+  }
+
+  /* clavier haut / bas */
+  function currentIndex(){
+    var mid = window.innerHeight/2, best=0, bestD=Infinity;
+    for (var i=0;i<SECTIONS.length;i++){
+      var r = SECTIONS[i].getBoundingClientRect();
+      var d = Math.abs((r.top + r.height/2) - mid);
+      if (d < bestD){ bestD = d; best = i; }
+    }
+    return best;
+  }
+  document.addEventListener("keydown", function(ev){
+    if (ev.key === "ArrowDown" || ev.key === "ArrowUp"){
+      var tag = (ev.target && ev.target.tagName ? ev.target.tagName : "").toLowerCase();
+      if (tag === "input" || tag === "textarea") return;
+      ev.preventDefault();
+      var i = currentIndex();
+      if (ev.key === "ArrowDown") i = Math.min(i+1, maxUnlocked);
+      else i = Math.max(i-1, 0);
+      goTo(i);
+    }
+  });
+
+  /* ---------------- MINI-QUIZ ---------------- */
+  var quizzes = document.querySelectorAll(".quiz");
+  for (var q=0;q<quizzes.length;q++){
+    (function(quiz){
+      var obj = parseInt(quiz.getAttribute("data-obj"), 10);
+      var fb = quiz.querySelector(".feedback");
+      var cont = quiz.querySelector(".continue");
+      var opts = quiz.querySelectorAll(".opt");
+      for (var o=0;o<opts.length;o++){
+        opts[o].addEventListener("click", function(){
+          var isCorrect = this.getAttribute("data-correct") === "true";
+          if (isCorrect){
+            for (var b=0;b<opts.length;b++){ opts[b].disabled = true; opts[b].classList.remove("wrong"); }
+            this.classList.add("right");
+            if (fb){ fb.textContent = "Bravo \u2713  Tu peux continuer."; fb.className = "feedback ok"; }
+            unlock(obj+1);
+            if (cont){ cont.hidden = false; }
+            if (obj === TOTAL-1){
+              var fin = document.getElementById("finish");
+              if (fin) fin.classList.add("show");
+            }
+          } else {
+            this.classList.add("wrong");
+            if (fb){ fb.textContent = "Pas tout \u00e0 fait\u2026 relis et r\u00e9essaie."; fb.className = "feedback no"; }
+            var self = this;
+            setTimeout(function(){ self.classList.remove("wrong"); }, 400);
+          }
+        });
+      }
+      if (cont){
+        cont.addEventListener("click", function(){ goTo(obj+1); });
+      }
+    })(quizzes[q]);
+  }
+
+  /* ---------------- OUTILS DE DESSIN ---------------- */
+  var INK="#23323d", STEEL="#2E6A8E", COPPER="#B85C2E", OK="#2f8f5b", NO="#c0492f";
+
+  function arrow(ctx, x1,y1,x2,y2, col, w){
+    ctx.save();
+    ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=(w||4); ctx.lineCap="round";
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    var a=Math.atan2(y2-y1, x2-x1), h=9+(w||4);
+    ctx.beginPath();
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-h*Math.cos(a-0.42), y2-h*Math.sin(a-0.42));
+    ctx.lineTo(x2-h*Math.cos(a+0.42), y2-h*Math.sin(a+0.42));
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  function txt(ctx, t, x, y, size, col, align, weight){
+    ctx.save();
+    ctx.fillStyle = col || INK;
+    ctx.font = (weight||"500")+" "+(size||16)+"px 'JetBrains Mono', monospace";
+    ctx.textAlign = align || "center"; ctx.textBaseline = "middle";
+    ctx.fillText(t, x, y);
+    ctx.restore();
+  }
+  function roundRect(ctx, x, y, w, h, r){
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y, x+w, y+h, r);
+    ctx.arcTo(x+w, y+h, x, y+h, r);
+    ctx.arcTo(x, y+h, x, y, r);
+    ctx.arcTo(x, y, x+w, y, r);
+    ctx.closePath();
+  }
+
+  /* ---------------- MOTEUR D'ANIMATION ---------------- */
+  function setupAnim(canvasId, capId, captions, drawFn){
+    var cv = document.getElementById(canvasId);
+    if (!cv) return;
+    var ctx = cv.getContext("2d");
+    var cap = document.getElementById(capId);
+    var W = cv.width, H = cv.height;
+    var last = captions.length - 1;
+    var phase = 0, prog = 1, raf = null;
+
+    function render(){
+      ctx.clearRect(0,0,W,H);
+      drawFn(ctx, phase, prog, W, H);
+      if (cap) cap.textContent = captions[phase];
+    }
+    function ease(t){ return t<0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2; }
+    function go(p){
+      if (raf) cancelAnimationFrame(raf);
+      phase = p;
+      var start = null;
+      function step(ts){
+        if (start === null) start = ts;
+        var t = Math.min(1, (ts - start)/620);
+        prog = ease(t);
+        render();
+        if (t < 1) raf = requestAnimationFrame(step);
+      }
+      raf = requestAnimationFrame(step);
+    }
+    var wrap = cv.closest(".anim");
+    var nextBtn = wrap.querySelector(".anim-next");
+    var resetBtn = wrap.querySelector(".anim-reset");
+    if (nextBtn) nextBtn.addEventListener("click", function(){ if (phase < last) go(phase+1); });
+    if (resetBtn) resetBtn.addEventListener("click", function(){ go(0); });
+    render();
+  }
+
+  /* ---------------- DESSIN : PRESSION (char / chenilles) ---------------- */
+  function drawPression(ctx, phase, prog, W, H){
+    var groundY = 360;
+    // boue
+    ctx.fillStyle = "#5f4a36"; ctx.fillRect(0, groundY, W, H-groundY);
+    ctx.fillStyle = "#6d573f";
+    for (var d=0; d<W; d+=44){ ctx.fillRect(d, groundY, 22, 6); }
+    ctx.strokeStyle = "#3f3225"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(W, groundY); ctx.stroke();
+    txt(ctx, "BOUE", 40, groundY+34, 15, "#d8c7ad", "left", "700");
+
+    var dimming = (phase === 3) ? 0.20 : 1;
+    ctx.save();
+    ctx.globalAlpha = dimming;
+
+    // ---- GAUCHE : petites roues ----
+    var xL = 250, wheelR = 15;
+    var sinkL = (phase >= 2) ? 52 : (phase === 1 ? 52*prog : 0);
+    var wheelCY = groundY + sinkL - wheelR;
+    var bBottomL = wheelCY - wheelR, bh = 86, bTopL = bBottomL - bh;
+    var wxs = [xL-66, xL-22, xL+22, xL+66], wi;
+    ctx.fillStyle = "#2E6A8E";
+    roundRect(ctx, xL-95, bTopL, 190, bh, 10); ctx.fill();
+    ctx.fillStyle = "#1f4d68"; roundRect(ctx, xL-95, bTopL, 190, 22, 10); ctx.fill();
+    for (wi=0; wi<4; wi++){
+      ctx.fillStyle = "#23323d"; ctx.beginPath(); ctx.arc(wxs[wi], wheelCY, wheelR, 0, 7); ctx.fill();
+      ctx.fillStyle = "#9aa6ad"; ctx.beginPath(); ctx.arc(wxs[wi], wheelCY, 5, 0, 7); ctx.fill();
+    }
+    txt(ctx, "CHAR 56 t", xL, bTopL+bh/2, 17, "#eaf3f9", "center", "700");
+    txt(ctx, "PETITES ROUES", xL, groundY+sinkL+30, 14, "#d8c7ad", "center", "700");
+
+    // ---- DROITE : chenilles ----
+    var xR = 710, trackH = 26, trackW = 200;
+    var bBottomR = groundY - trackH, bTopR = bBottomR - bh;
+    ctx.fillStyle = "#2E6A8E";
+    roundRect(ctx, xR-95, bTopR, 190, bh, 10); ctx.fill();
+    ctx.fillStyle = "#1f4d68"; roundRect(ctx, xR-95, bTopR, 190, 22, 10); ctx.fill();
+    ctx.fillStyle = "#23323d";
+    roundRect(ctx, xR-trackW/2, groundY-trackH, trackW, trackH, 13); ctx.fill();
+    for (var t2=0; t2<7; t2++){
+      ctx.fillStyle = "#445"; ctx.beginPath();
+      ctx.arc(xR - trackW/2 + 18 + t2*27, groundY - trackH/2, 6, 0, 7); ctx.fill();
+    }
+    txt(ctx, "CHAR 56 t", xR, bTopR+bh/2, 17, "#eaf3f9", "center", "700");
+    txt(ctx, "CHENILLES", xR, groundY+30, 14, "#d8c7ad", "center", "700");
+
+    ctx.restore();
+
+    // ---- annotations ----
+    if (phase >= 1 && phase < 3){
+      arrow(ctx, xL, bBottomL+20, xL, groundY+sinkL+8, NO, 5);
+      txt(ctx, "S petite", xL, bTopL-30, 16, NO, "center", "700");
+      txt(ctx, "P FORTE -> ca s'enfonce", xL, bTopL-10, 14, NO, "center", "700");
+    }
+    if (phase >= 2 && phase < 3){
+      arrow(ctx, xR, bTopR-34, xR, bTopR-8, OK, 5);
+      txt(ctx, "S grande", xR, bTopR-54, 16, OK, "center", "700");
+      txt(ctx, "P FAIBLE -> ca flotte", xR, bTopR-72, 14, OK, "center", "700");
+    }
+
+    // ---- conclusion ----
+    if (phase === 3){
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,.78)";
+      roundRect(ctx, 120, 120, W-240, 210, 20); ctx.fill();
+      ctx.strokeStyle = "#e7ddca"; ctx.lineWidth = 2; ctx.stroke();
+      txt(ctx, "P = F / S", W/2, 178, 52, COPPER, "center", "700");
+      txt(ctx, "surface S grande  ->  pression P faible", W/2, 232, 19, STEEL, "center", "700");
+      txt(ctx, "chenilles ~ 0,9 bar      talon aiguille ~ 60 bar", W/2, 286, 18, INK, "center", "500");
+      ctx.restore();
+    }
+  }
+
+  /* ---------------- DESSIN : BLINDAGE (droit vs incliné) ---------------- */
+  function drawBlindage(ctx, phase, prog, W, H){
+    var yLine = 210;
+    var dimming = (phase === 3) ? 0.20 : 1;
+
+    ctx.save();
+    ctx.globalAlpha = dimming;
+
+    // GAUCHE : plaque verticale
+    var xL = 250, e = 26;
+    ctx.fillStyle = "#2E6A8E";
+    roundRect(ctx, xL - e/2, 110, e, 190, 4); ctx.fill();
+    txt(ctx, "BLINDAGE DROIT", xL, 88, 15, INK, "center", "700");
+    txt(ctx, "epaisseur e", xL, 322, 13, STEEL, "center", "500");
+
+    // DROITE : plaque inclinée (slab diagonal)
+    var xR = 700;
+    ctx.strokeStyle = "#2E6A8E"; ctx.lineWidth = e; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(xR-58, 112); ctx.lineTo(xR+58, 300); ctx.stroke();
+    txt(ctx, "BLINDAGE INCLINE", xR, 88, 15, INK, "center", "700");
+    txt(ctx, "meme epaisseur e", xR, 322, 13, STEEL, "center", "500");
+
+    ctx.restore();
+
+    // projectile gauche
+    var tipL = (phase >= 1) ? (xL + 70) : (xL - 80);
+    arrow(ctx, 70, yLine, tipL, yLine, INK, 5);
+    if (phase === 0) txt(ctx, "PROJECTILE", 120, yLine-22, 13, INK, "left", "700");
+
+    // surbrillance trajet gauche
+    if (phase >= 1){
+      ctx.save(); ctx.strokeStyle = NO; ctx.lineWidth = 9;
+      ctx.beginPath(); ctx.moveTo(xL - e/2, yLine); ctx.lineTo(xL + e/2, yLine); ctx.stroke();
+      ctx.restore();
+      txt(ctx, "trajet = e", xL, yLine-26, 14, NO, "center", "700");
+    }
+
+    // projectile droite + trajet long
+    if (phase >= 2){
+      arrow(ctx, 470, yLine, xR + 75, yLine, INK, 5);
+      ctx.save(); ctx.strokeStyle = NO; ctx.lineWidth = 9;
+      ctx.beginPath(); ctx.moveTo(xR - 30, yLine); ctx.lineTo(xR + 33, yLine); ctx.stroke();
+      ctx.restore();
+      txt(ctx, "trajet ~ 2x plus long", xR, yLine-30, 14, NO, "center", "700");
+    }
+
+    if (phase === 3){
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,.80)";
+      roundRect(ctx, 150, 120, W-300, 180, 20); ctx.fill();
+      ctx.strokeStyle = "#e7ddca"; ctx.lineWidth = 2; ctx.stroke();
+      txt(ctx, "BLINDAGE INCLINE", W/2, 168, 30, COPPER, "center", "700");
+      txt(ctx, "= trajet plus long a traverser", W/2, 214, 19, STEEL, "center", "700");
+      txt(ctx, "mieux protege, sans plus de poids", W/2, 256, 18, INK, "center", "500");
+      ctx.restore();
+    }
+  }
+
+  /* ---------------- DESSIN : FLOTTAISON (Archimède) ---------------- */
+  function drawFlott(ctx, phase, prog, W, H){
+    var waterTop = 300, cx = 480, hw = 300, hh = 110;
+    var T = [250, 384, 360]; // bottom du flotteur par phase
+    var bottomY;
+    if (phase === 0) bottomY = T[0];
+    else bottomY = T[phase-1] + (T[phase] - T[phase-1]) * prog;
+    var topY = bottomY - hh;
+
+    // eau (fond)
+    ctx.fillStyle = "#cfe3ee"; ctx.fillRect(0, waterTop, W, H - waterTop);
+    txt(ctx, "EAU", 46, H-40, 15, "#5b8aa6", "left", "700");
+
+    // coque
+    ctx.fillStyle = "#B85C2E";
+    roundRect(ctx, cx-hw/2, topY, hw, hh, 12); ctx.fill();
+    // cabine
+    ctx.fillStyle = "#9a4a22";
+    roundRect(ctx, cx-50, topY-34, 100, 40, 8); ctx.fill();
+    // intérieur "air"
+    ctx.fillStyle = "#f6e3d4";
+    roundRect(ctx, cx-hw/2+16, topY+16, hw-32, hh-34, 8); ctx.fill();
+    txt(ctx, "AIR", cx, topY + hh/2 + 2, 22, "#9a4a22", "center", "700");
+    txt(ctx, "COQUE ETANCHE", cx, topY-52, 14, INK, "center", "700");
+
+    // tint eau par-dessus la partie immergée
+    ctx.save();
+    ctx.fillStyle = "rgba(120,170,200,.42)";
+    ctx.fillRect(0, waterTop, W, H - waterTop);
+    ctx.restore();
+
+    // ligne d'eau
+    ctx.strokeStyle = "#7fb0cc"; ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (var x=0; x<=W; x+=10){
+      var yy = waterTop + Math.sin((x/46) + prog*3) * 3;
+      if (x === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+    }
+    ctx.stroke();
+
+    // forces
+    if (phase >= 1){
+      arrow(ctx, cx+78, bottomY+6, cx+78, bottomY-78, STEEL, 6);
+      txt(ctx, "POUSSEE", cx+150, bottomY-44, 15, STEEL, "center", "700");
+      arrow(ctx, cx-78, topY+26, cx-78, topY+102, INK, 6);
+      txt(ctx, "POIDS", cx-150, topY+66, 15, INK, "center", "700");
+    }
+    if (phase === 2){
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,.82)";
+      roundRect(ctx, cx-180, 24, 360, 56, 14); ctx.fill();
+      ctx.strokeStyle = "#e7ddca"; ctx.lineWidth = 2; ctx.stroke();
+      txt(ctx, "POUSSEE = POIDS  ->  IL FLOTTE", cx, 52, 19, OK, "center", "700");
+      ctx.restore();
+    }
+  }
+
+  /* ---------------- LANCEMENT DES ANIMATIONS ---------------- */
+  setupAnim("cv-pression", "cap-pression", [
+    "On a un engin tr\u00e8s lourd (56 tonnes). Comment l\u2019emp\u00eacher de s\u2019enfoncer dans la boue ?",
+    "Sur de petites roues, le poids appuie sur une toute petite surface : la pression est \u00e9norme, donc \u00e7a s\u2019enfonce.",
+    "Sur des chenilles, le m\u00eame poids est r\u00e9parti sur une grande surface : la pression devient faible, donc \u00e7a reste en surface.",
+    "M\u00eame poids, mais P = F \u00f7 S : plus la surface S est grande, plus la pression P est petite. (Chenilles \u2248 0,9 bar, moins qu\u2019un talon aiguille \u2248 60 bar !)"
+  ], drawPression);
+
+  setupAnim("cv-blindage", "cap-blindage", [
+    "Deux plaques de blindage de m\u00eame \u00e9paisseur. Un projectile arrive \u00e0 l\u2019horizontale.",
+    "Blindage droit : le projectile traverse juste l\u2019\u00e9paisseur e.",
+    "Blindage inclin\u00e9 : \u00e0 \u00e9paisseur \u00e9gale, le projectile doit traverser un trajet bien plus long (environ 2 fois).",
+    "Incliner le blindage augmente l\u2019\u00e9paisseur \u00ab vue \u00bb par le projectile, sans ajouter de poids : mieux prot\u00e9g\u00e9 !"
+  ], drawBlindage);
+
+  setupAnim("cv-flott", "cap-flott", [
+    "Un v\u00e9hicule amphibie : une coque \u00e9tanche qui enferme beaucoup d\u2019air.",
+    "En entrant dans l\u2019eau, il pousse l\u2019eau sur les c\u00f4t\u00e9s ; en r\u00e9action, l\u2019eau le repousse vers le haut : c\u2019est la pouss\u00e9e d\u2019Archim\u00e8de.",
+    "Quand la pouss\u00e9e \u00e9gale le poids, le v\u00e9hicule flotte. Le secret : un grand volume d\u2019air, qui d\u00e9place assez d\u2019eau."
+  ], drawFlott);
+
+  refresh();
+})();
+</script>
+</body>
+</html>

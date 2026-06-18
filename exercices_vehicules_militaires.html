@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V&eacute;hicules militaires &mdash; Exercices</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F8F4EC; --ink:#23323d; --ink-soft:#5b6b75;
+    --copper:#B85C2E; --copper-d:#8f4420; --steel:#2E6A8E; --steel-soft:#e2edf3;
+    --card:#fff; --line:#e7ddca; --line-d:#d9cdb3;
+    --ok:#2f8f5b; --ok-bg:#e9f6ee; --no:#c0492f; --no-bg:#fbe9e5; --lock:#9a8f7a;
+    --shadow:0 10px 30px rgba(35,50,61,.08);
+    --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+    --disp:'Bricolage Grotesque',system-ui,-apple-system,Segoe UI,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);font-family:var(--disp);font-size:18px;line-height:1.55;
+    background-image:linear-gradient(rgba(46,106,142,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(46,106,142,.04) 1px,transparent 1px);
+    background-size:28px 28px;
+  }
+  .page{max-width:920px;margin:0 auto;padding:0 22px 100px}
+
+  header.top{padding:46px 0 22px}
+  .eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--copper)}
+  h1{font-size:clamp(30px,4.4vw,48px);line-height:1.04;letter-spacing:-.03em;margin:.1em 0 .3em;font-weight:800}
+  .lead{font-size:18px;color:var(--ink-soft);max-width:64ch;margin:0}
+
+  .progress-wrap{position:sticky;top:0;z-index:30;background:rgba(248,244,236,.92);backdrop-filter:blur(5px);padding:14px 0;margin-bottom:8px;border-bottom:1px solid var(--line)}
+  .progress-row{display:flex;align-items:center;gap:14px}
+  .progress-row .label{font-family:var(--mono);font-size:13px;color:var(--ink-soft);white-space:nowrap}
+  .bar{flex:1;height:10px;background:#fff;border:1px solid var(--line-d);border-radius:999px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--copper),var(--steel));transition:width .4s}
+
+  /* exercise card */
+  .ex{position:relative;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 24px;margin:18px 0;box-shadow:var(--shadow)}
+  .ex-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .badge{font-family:var(--mono);font-weight:700;font-size:14px;color:#fff;background:var(--copper);border-radius:10px;padding:5px 11px}
+  .tag{font-family:var(--mono);font-size:12px;color:var(--steel);background:var(--steel-soft);border-radius:999px;padding:4px 11px}
+  .q{font-size:19px;font-weight:600;letter-spacing:-.01em;margin:0 0 16px}
+  .q .val{font-family:var(--mono);font-weight:700;color:var(--copper-d)}
+
+  .num-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  input.ans{font-family:var(--mono);font-size:17px;width:150px;padding:11px 14px;border:1.5px solid var(--line-d);border-radius:11px;background:#fbfaf6}
+  input.ans:focus{outline:none;border-color:var(--steel);background:#fff}
+  .unit{font-family:var(--mono);font-weight:700;color:var(--ink-soft)}
+
+  .opts{display:grid;gap:10px;max-width:560px}
+  .opt{font-family:var(--disp);font-size:16px;text-align:left;background:#fbfaf6;border:1.5px solid var(--line-d);border-radius:12px;padding:13px 16px;cursor:pointer;transition:.12s}
+  .opt:hover:not(:disabled){border-color:var(--steel);background:var(--steel-soft)}
+  .opt:disabled{cursor:default}
+  .opt.right{border-color:var(--ok);background:var(--ok-bg);color:#1f6b40;font-weight:600}
+  .opt.wrong{border-color:var(--no);background:var(--no-bg);animation:shake .35s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+  .btn{font-family:var(--disp);font-weight:600;font-size:15px;border:0;border-radius:11px;padding:11px 18px;cursor:pointer;transition:transform .1s,filter .15s}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--copper);color:#fff}
+  .btn-primary:hover{filter:brightness(1.06)}
+  .btn-ghost{background:#fff;color:var(--steel);border:1px solid var(--line-d)}
+  .btn-ghost:hover{background:var(--steel-soft)}
+  .btn-mini{font-size:13.5px;padding:8px 13px}
+
+  .tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .feedback{min-height:22px;margin-top:12px;font-size:15px;font-weight:600}
+  .feedback.ok{color:var(--ok)} .feedback.no{color:var(--no)}
+
+  .help{margin-top:14px;border-top:1px dashed var(--line-d);padding-top:14px}
+  .reveal{display:none;background:#fbfaf6;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:12px;font-size:15.5px;line-height:1.55}
+  .reveal.show{display:block;animation:fade .3s}
+  @keyframes fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1}}
+  .reveal .step{font-family:var(--mono);color:var(--steel);font-size:14.5px}
+  .reveal b{color:var(--copper-d)}
+
+  /* locked */
+  .lock-badge{display:none;position:absolute;inset:0;z-index:5;align-items:center;justify-content:center;background:rgba(248,244,236,.5);backdrop-filter:blur(2px);border-radius:18px}
+  .lock-badge .pill{background:#fff;border:1px solid var(--line-d);border-radius:999px;padding:11px 20px;font-family:var(--mono);font-size:13.5px;color:var(--lock);box-shadow:var(--shadow)}
+  .ex.locked .lock-badge{display:flex}
+  .ex.locked .ex-inner{filter:blur(6px) grayscale(.4);opacity:.5;pointer-events:none;user-select:none}
+  .ex.solved{border-left:5px solid var(--ok)}
+
+  /* GAME */
+  .game{position:relative;background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;margin:34px 0 0;box-shadow:var(--shadow)}
+  .game h2{font-size:26px;letter-spacing:-.02em;margin:0 0 6px}
+  .game .sub{color:var(--ink-soft);font-size:15px;margin:0 0 14px}
+  .legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-family:var(--mono);font-size:13px}
+  .legend span{display:flex;align-items:center;gap:7px;background:#fbfaf6;border:1px solid var(--line-d);border-radius:999px;padding:5px 12px}
+  .sw{width:14px;height:14px;border-radius:4px}
+  .canvas-box{position:relative}
+  .game canvas{width:100%;height:auto;display:block;background:#eef5f9;border:1px solid var(--line);border-radius:14px}
+  .overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(35,50,61,.78);color:#fff;border-radius:14px;text-align:center;padding:20px}
+  .overlay.hidden{display:none}
+  .overlay h3{font-size:26px;margin:0}
+  .overlay p{margin:0;opacity:.9;max-width:46ch}
+  .mode-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;justify-content:center}
+  .mode{font-family:var(--disp);font-weight:600;font-size:15px;border:1.5px solid var(--line-d);background:#fbfaf6;color:var(--ink);border-radius:12px;padding:11px 16px;cursor:pointer}
+  .mode .k{font-family:var(--mono);font-size:12px;color:var(--copper);font-weight:700;margin-right:6px}
+  .mode.active{border-color:var(--steel);background:var(--steel);color:#fff}
+  .mode.active .k{color:#cfe3f0}
+  .game.locked .lock-badge{display:flex}
+  .game.locked .game-inner{filter:blur(6px) grayscale(.4);opacity:.5;pointer-events:none}
+
+  .finish{display:none;background:linear-gradient(135deg,#fff,#fef4ec);border:1px solid var(--copper);border-radius:18px;padding:22px 26px;margin-top:22px;box-shadow:var(--shadow)}
+  .finish.show{display:block}
+  .finish h3{color:var(--copper-d);margin:0 0 .3em}
+
+  @media (max-width:620px){
+    .page{padding:0 14px 80px}
+    .ex{padding:18px 16px}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="top">
+    <div class="eyebrow">Techno &middot; Physique &mdash; Exercices</div>
+    <h1>V&eacute;hicules militaires&nbsp;: &agrave; toi de jouer</h1>
+    <p class="lead">11 exercices qui se d&eacute;bloquent un par un. Si tu coinces, clique sur <b>&laquo;&nbsp;Je bloque&nbsp;&raquo;</b> pour un coup de pouce, puis sur <b>&laquo;&nbsp;Montre-moi&nbsp;&raquo;</b> pour la correction. R&eacute;ussis le dernier pour d&eacute;bloquer le <b>jeu</b>&nbsp;!</p>
+  </header>
+
+  <div class="progress-wrap">
+    <div class="progress-row">
+      <span class="label" id="prog-label">0 / 11 r&eacute;ussis</span>
+      <span class="bar"><i id="prog-bar"></i></span>
+    </div>
+  </div>
+
+  <div id="ex-list"></div>
+
+  <!-- ===================== JEU ===================== -->
+  <section class="game locked" id="game">
+    <div class="lock-badge"><div class="pill">&#128274; Termine les 11 exercices pour d&eacute;bloquer le jeu</div></div>
+    <div class="game-inner">
+      <h2>&#127950; Exp&eacute;dition blind&eacute;e</h2>
+      <p class="sub">Le terrain d&eacute;file. Choisis le bon &eacute;quipement <b>avant</b> chaque zone&nbsp;: la route veut des roues, la boue veut des chenilles, l&rsquo;eau veut le flotteur. Touches <b>1 / 2 / 3</b> ou les boutons.</p>
+      <div class="legend">
+        <span><span class="sw" style="background:#9aa3ab"></span> ROUTE &rarr; Roues</span>
+        <span><span class="sw" style="background:#7a5c3e"></span> BOUE &rarr; Chenilles</span>
+        <span><span class="sw" style="background:#4e93c0"></span> EAU &rarr; Flotteur</span>
+      </div>
+      <div class="canvas-box">
+        <canvas id="cv-game" width="920" height="320" role="img" aria-label="Jeu de franchissement de terrain"></canvas>
+        <div class="overlay" id="ov-start">
+          <h3>Pr&ecirc;t&nbsp;?</h3>
+          <p>Adapte ton v&eacute;hicule au terrain qui arrive. 3 erreurs et c&rsquo;est fini&nbsp;!</p>
+          <button class="btn btn-primary" id="btn-start">Commencer</button>
+        </div>
+        <div class="overlay hidden" id="ov-end">
+          <h3 id="end-title">Termin&eacute;&nbsp;!</h3>
+          <p id="end-score"></p>
+          <button class="btn btn-primary" id="btn-replay">Rejouer</button>
+        </div>
+      </div>
+      <div class="mode-btns" id="mode-btns">
+        <button class="mode active" data-mode="0"><span class="k">1</span>Roues</button>
+        <button class="mode" data-mode="1"><span class="k">2</span>Chenilles</button>
+        <button class="mode" data-mode="2"><span class="k">3</span>Flotteur</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="finish" id="finish">
+    <h3>&#127881; Bravo, tout est termin&eacute;&nbsp;!</h3>
+    <p style="margin:0">Tu as fini les 11 exercices. Tu peux refaire les calculs avec d&rsquo;autres valeurs, ou rejouer pour battre ton score. Prochaine &eacute;tape&nbsp;: l&rsquo;&eacute;valuation.</p>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- utilitaires ---------- */
+  function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function fr(x){ return String(x).replace(".", ","); }
+  function el(tag, cls, html){
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html != null) e.innerHTML = html;
+    return e;
+  }
+
+  /* ============================================================
+     DONNEES DES EXERCICES
+     ============================================================ */
+  var EXOS = [
+    {
+      tag:"Fonctions", type:"mcq",
+      q:"\u00c0 quoi sert principalement un <b>drone d\u2019observation</b> ?",
+      opts:[
+        {t:"Observer le terrain et renseigner", ok:true},
+        {t:"Transporter des soldats", ok:false},
+        {t:"Franchir une rivi\u00e8re", ok:false}
+      ],
+      sol:"Un drone vole et porte une cam\u00e9ra : sa fonction est d\u2019<b>observer</b> sans exposer de pilote."
+    },
+    {
+      tag:"Vitesse", type:"num", unit:"km/h",
+      make:function(){
+        var v = pick([40,50,60,70,80,90]); var t = pick([2,3]); var d = v*t;
+        return {
+          ans:v,
+          q:"Un blind\u00e9 parcourt <span class='val'>"+d+" km</span> en <span class='val'>"+t+" h</span>. Quelle est sa <b>vitesse moyenne</b> ?",
+          hint:"La vitesse, c\u2019est la distance divis\u00e9e par le temps : v = d \u00f7 t.",
+          sol:"<span class='step'>v = "+d+" \u00f7 "+t+" = "+v+" km/h</span><br>On divise la distance par le temps."
+        };
+      }
+    },
+    {
+      tag:"Vitesse", type:"num", unit:"m/s",
+      make:function(){
+        var k = pick([36,54,72,90,108]); var ms = Math.round(k/3.6);
+        return {
+          ans:ms,
+          q:"Un v\u00e9hicule roule \u00e0 <span class='val'>"+k+" km/h</span>. Combien de m\u00e8tres parcourt-il <b>chaque seconde</b> (m/s) ?",
+          hint:"Pour passer des km/h aux m/s, on divise par 3,6.",
+          sol:"<span class='step'>"+k+" \u00f7 3,6 = "+ms+" m/s</span><br>3,6 est le facteur magique entre km/h et m/s."
+        };
+      }
+    },
+    {
+      tag:"Pression", type:"mcq",
+      q:"Pour qu\u2019un v\u00e9hicule <b>s\u2019enfonce moins</b> dans la boue, il faut\u2026",
+      opts:[
+        {t:"Augmenter la surface d\u2019appui sur le sol", ok:true},
+        {t:"Diminuer la surface d\u2019appui", ok:false},
+        {t:"Rouler beaucoup plus vite", ok:false}
+      ],
+      sol:"P = F \u00f7 S. \u00c0 poids \u00e9gal, une <b>plus grande surface S</b> donne une pression plus faible : on s\u2019enfonce moins."
+    },
+    {
+      tag:"Pression", type:"num", unit:"Pa",
+      make:function(){
+        var F = pick([600,800,1000,1200]); var S = pick([0.2,0.4,0.5]);
+        var P = Math.round(F/S);
+        return {
+          ans:P,
+          q:"Un objet exerce une force de <span class='val'>"+F+" N</span> sur une surface de <span class='val'>"+fr(S)+" m\u00b2</span>. Calcule la <b>pression P</b> (en pascals).",
+          hint:"Applique la formule : P = F \u00f7 S.",
+          sol:"<span class='step'>P = "+F+" \u00f7 "+fr(S)+" = "+P+" Pa</span><br>La pression se mesure en pascals (Pa)."
+        };
+      }
+    },
+    {
+      tag:"Pression", type:"num", unit:"Pa",
+      make:function(){
+        var S = pick([7,8,10]); var F = 560000; var P = Math.round(F/S);
+        return {
+          ans:P,
+          q:"Un char p\u00e8se <span class='val'>560 000 N</span>. Ses chenilles touchent le sol sur <span class='val'>"+S+" m\u00b2</span>. Quelle <b>pression</b> exerce-t-il (en Pa) ?",
+          hint:"Toujours P = F \u00f7 S. La grande surface des chenilles fait baisser la pression.",
+          sol:"<span class='step'>P = 560 000 \u00f7 "+S+" = "+P+" Pa</span><br>Soit environ "+fr(Math.round(P/1000)/100)+" bar : tr\u00e8s peu, gr\u00e2ce aux chenilles."
+        };
+      }
+    },
+    {
+      tag:"Blindage", type:"mcq",
+      q:"\u00c0 \u00e9paisseur \u00e9gale, pourquoi un <b>blindage inclin\u00e9</b> prot\u00e8ge-t-il mieux ?",
+      opts:[
+        {t:"Le projectile doit traverser un trajet plus long", ok:true},
+        {t:"Parce qu\u2019il est beaucoup plus lourd", ok:false},
+        {t:"Parce qu\u2019il r\u00e9fl\u00e9chit la lumi\u00e8re", ok:false}
+      ],
+      sol:"En inclinant la plaque, le projectile traverse <b>plus de mati\u00e8re</b> (jusqu\u2019\u00e0 2 fois \u00e0 60\u00b0), sans ajouter de poids."
+    },
+    {
+      tag:"Mat\u00e9riaux", type:"mcq",
+      q:"Un <b>blindage composite</b>, c\u2019est\u2026",
+      opts:[
+        {t:"Un empilement de plusieurs mat\u00e9riaux diff\u00e9rents", ok:true},
+        {t:"Un seul gros bloc d\u2019acier", ok:false},
+        {t:"Une fine couche de plastique souple", ok:false}
+      ],
+      sol:"Le composite empile des couches (acier, c\u00e9ramique\u2026) pour <b>casser et ralentir</b> l\u2019impact mieux qu\u2019un seul mat\u00e9riau."
+    },
+    {
+      tag:"Archim\u00e8de", type:"mcq",
+      q:"Un v\u00e9hicule amphibie <b>flotte</b> lorsque\u2026",
+      opts:[
+        {t:"La pouss\u00e9e de l\u2019eau \u00e9gale (ou d\u00e9passe) son poids", ok:true},
+        {t:"Il roule tr\u00e8s vite sur l\u2019eau", ok:false},
+        {t:"Il est enti\u00e8rement en m\u00e9tal", ok:false}
+      ],
+      sol:"L\u2019eau pousse vers le haut (pouss\u00e9e d\u2019Archim\u00e8de). Si cette pouss\u00e9e \u00e9gale le poids, l\u2019\u00e9quilibre est atteint : il <b>flotte</b>."
+    },
+    {
+      tag:"Archim\u00e8de", type:"mcq",
+      q:"Deux caisses \u00e9tanches identiques tombent \u00e0 l\u2019eau : l\u2019une pleine d\u2019<b>air</b>, l\u2019autre pleine de <b>sable</b>. Laquelle flotte ?",
+      opts:[
+        {t:"Celle remplie d\u2019air", ok:true},
+        {t:"Celle remplie de sable", ok:false},
+        {t:"Aucune des deux", ok:false}
+      ],
+      sol:"M\u00eame volume, mais l\u2019air est tr\u00e8s l\u00e9ger : la caisse d\u2019air est moins lourde que l\u2019eau qu\u2019elle d\u00e9place \u2192 elle <b>flotte</b>. C\u2019est le principe de la coque amphibie."
+    },
+    {
+      tag:"Compromis", type:"mcq",
+      q:"Si on ajoute <b>beaucoup de blindage</b> \u00e0 un v\u00e9hicule, il devient\u2026",
+      opts:[
+        {t:"Plus lourd, donc moins rapide", ok:true},
+        {t:"Plus l\u00e9ger et plus rapide", ok:false},
+        {t:"Invisible aux radars", ok:false}
+      ],
+      sol:"C\u2019est le <b>compromis</b> du concepteur : plus de protection \u2192 plus de masse \u2192 moins de mobilit\u00e9. On ne peut pas tout maximiser."
+    }
+  ];
+
+  /* ============================================================
+     RENDU & VERROUILLAGE
+     ============================================================ */
+  var listEl = document.getElementById("ex-list");
+  var progLabel = document.getElementById("prog-label");
+  var progBar = document.getElementById("prog-bar");
+  var N = EXOS.length;
+  var cards = [];
+  var unlockedMax = 0;   // index max d\u00e9verrouill\u00e9
+  var solvedCount = 0;
+  var gameUnlocked = false;
+
+  function updateProgress(){
+    progLabel.textContent = solvedCount + " / " + N + " r\u00e9ussis";
+    progBar.style.width = Math.round(solvedCount/N*100) + "%";
+  }
+  function refreshLocks(){
+    for (var i=0;i<cards.length;i++){
+      cards[i].root.classList.toggle("locked", i > unlockedMax);
+    }
+  }
+  function onSolve(i){
+    if (cards[i].solved) return;
+    cards[i].solved = true;
+    cards[i].root.classList.add("solved");
+    solvedCount++;
+    if (i+1 < N) unlockedMax = Math.max(unlockedMax, i+1);
+    if (i === N-1){ unlockGame(); document.getElementById("finish").classList.add("show"); }
+    refreshLocks();
+    updateProgress();
+    if (i+1 < N && cards[i+1]){
+      setTimeout(function(){ cards[i+1].root.scrollIntoView({behavior:"smooth", block:"center"}); }, 250);
+    }
+  }
+
+  function buildCard(ex, i){
+    var root = el("section", "ex");
+    var lb = el("div", "lock-badge", "<div class='pill'>&#128274; Termine l\u2019exercice pr\u00e9c\u00e9dent</div>");
+    var inner = el("div", "ex-inner");
+    var head = el("div", "ex-head");
+    head.appendChild(el("span", "badge", "E"+(i+1)));
+    head.appendChild(el("span", "tag", ex.tag));
+    inner.appendChild(head);
+
+    var qEl = el("p", "q");
+    inner.appendChild(qEl);
+
+    var feedback = el("p", "feedback");
+    var hintBox = el("div", "reveal");
+    var solBox = el("div", "reveal");
+
+    var card = { root:root, solved:false, cur:null };
+
+    /* ----- contenu selon le type ----- */
+    if (ex.type === "num"){
+      var numRow = el("div", "num-row");
+      var input = el("input", "ans"); input.type = "text"; input.setAttribute("inputmode","decimal"); input.placeholder = "?";
+      var unit = el("span", "unit", ex.unit);
+      var check = el("button", "btn btn-primary", "V\u00e9rifier");
+      numRow.appendChild(input); numRow.appendChild(unit); numRow.appendChild(check);
+      inner.appendChild(numRow);
+
+      function loadProblem(){
+        card.cur = ex.make();
+        qEl.innerHTML = card.cur.q;
+        hintBox.innerHTML = "<b>Coup de pouce&nbsp;:</b> " + card.cur.hint;
+        solBox.innerHTML = "<b>Correction&nbsp;:</b><br>" + card.cur.sol + "<br><span class='step'>R\u00e9ponse : " + fr(card.cur.ans) + " " + ex.unit + "</span>";
+        input.value = ""; feedback.textContent = ""; feedback.className = "feedback";
+      }
+      check.addEventListener("click", function(){
+        var raw = (input.value || "").trim().replace(",", ".").replace(/\s/g,"");
+        var v = parseFloat(raw);
+        if (isNaN(v)){ feedback.textContent = "\u00c9cris un nombre."; feedback.className = "feedback no"; return; }
+        var a = card.cur.ans;
+        if (Math.abs(v - a) <= Math.max(0.5, a*0.001)){
+          feedback.textContent = "Correct \u2713  " + fr(a) + " " + ex.unit; feedback.className = "feedback ok";
+          input.disabled = true; check.disabled = true;
+          onSolve(i);
+        } else {
+          feedback.textContent = "Pas tout \u00e0 fait\u2026 r\u00e9essaie (ou clique sur Je bloque)."; feedback.className = "feedback no";
+        }
+      });
+      input.addEventListener("keydown", function(e){ if (e.key === "Enter") check.click(); });
+      card.loadProblem = loadProblem;
+    } else {
+      var opts = el("div", "opts");
+      for (var o=0;o<ex.opts.length;o++){
+        (function(opt){
+          var b = el("button", "opt", opt.t);
+          b.addEventListener("click", function(){
+            if (opt.ok){
+              var all = opts.querySelectorAll(".opt");
+              for (var z=0;z<all.length;z++){ all[z].disabled = true; all[z].classList.remove("wrong"); }
+              b.classList.add("right");
+              feedback.textContent = "Bonne r\u00e9ponse \u2713"; feedback.className = "feedback ok";
+              onSolve(i);
+            } else {
+              b.classList.add("wrong");
+              feedback.textContent = "Pas la bonne\u2026 relis l\u2019\u00e9nonc\u00e9 ou demande de l\u2019aide."; feedback.className = "feedback no";
+              setTimeout(function(){ b.classList.remove("wrong"); }, 400);
+            }
+          });
+          opts.appendChild(b);
+        })(ex.opts[o]);
+      }
+      inner.appendChild(opts);
+      qEl.innerHTML = ex.q;
+      hintBox.innerHTML = "<b>Coup de pouce&nbsp;:</b> Relis bien l\u2019\u00e9nonc\u00e9 et \u00e9limine les r\u00e9ponses impossibles.";
+      solBox.innerHTML = "<b>Correction&nbsp;:</b> " + ex.sol;
+    }
+
+    inner.appendChild(feedback);
+
+    /* ----- aide : Je bloque / Montre-moi / Autres valeurs ----- */
+    var help = el("div", "help");
+    var tools = el("div", "tools");
+    var blockBtn = el("button", "btn btn-ghost btn-mini", "&#129300; Je bloque");
+    var showBtn = el("button", "btn btn-ghost btn-mini", "&#128064; Montre-moi la correction");
+    showBtn.style.display = "none";
+    tools.appendChild(blockBtn);
+    tools.appendChild(showBtn);
+    if (ex.type === "num"){
+      var againBtn = el("button", "btn btn-ghost btn-mini", "&#8635; Autres valeurs");
+      againBtn.addEventListener("click", function(){
+        card.loadProblem();
+        hintBox.classList.remove("show"); solBox.classList.remove("show");
+        showBtn.style.display = "none";
+        var inp = numRowInput(); if (inp){ inp.disabled = false; }
+        var ck = numRowCheck(); if (ck){ ck.disabled = false; }
+      });
+      tools.appendChild(againBtn);
+      function numRowInput(){ return inner.querySelector("input.ans"); }
+      function numRowCheck(){ return inner.querySelector(".num-row .btn-primary"); }
+    }
+    blockBtn.addEventListener("click", function(){
+      hintBox.classList.add("show");
+      showBtn.style.display = "";
+    });
+    showBtn.addEventListener("click", function(){ solBox.classList.add("show"); });
+    help.appendChild(tools);
+    help.appendChild(hintBox);
+    help.appendChild(solBox);
+    inner.appendChild(help);
+
+    root.appendChild(lb);
+    root.appendChild(inner);
+
+    if (ex.type === "num" && card.loadProblem) card.loadProblem();
+    return { root:root, card:card };
+  }
+
+  for (var i=0;i<EXOS.length;i++){
+    var built = buildCard(EXOS[i], i);
+    listEl.appendChild(built.root);
+    cards.push(built.card);
+  }
+  refreshLocks();
+  updateProgress();
+
+  /* ============================================================
+     JEU : EXPEDITION BLINDEE
+     ============================================================ */
+  function unlockGame(){
+    gameUnlocked = true;
+    document.getElementById("game").classList.remove("locked");
+  }
+
+  var Game = (function(){
+    var cv = document.getElementById("cv-game");
+    if (!cv) return {};
+    var ctx = cv.getContext("2d");
+    var W = cv.width, H = cv.height;
+    var TILE = 184, VX = 150, GROUND = 232;
+    var COLORS = { road:"#9aa3ab", mud:"#7a5c3e", water:"#4e93c0" };
+    var TYPES = ["road","mud","water"];
+    var modeBtns = document.querySelectorAll("#mode-btns .mode");
+    var ovStart = document.getElementById("ov-start");
+    var ovEnd = document.getElementById("ov-end");
+    var endTitle = document.getElementById("end-title");
+    var endScore = document.getElementById("end-score");
+
+    var S = null, raf = null, running = false;
+
+    function newType(prev){
+      var t = pick(TYPES);
+      while (t === prev) t = pick(TYPES);
+      return t;
+    }
+    function reset(){
+      S = { tiles:[], speed:2.6, score:0, lives:3, mode:0, current:-1, flash:0, flashCol:null };
+      var x = 60, prev = "road";
+      // premiere tuile longue "route" pour demarrer en douceur
+      S.tiles.push({ x:x, type:"road" }); x += TILE; prev = "road";
+      while (x < W + TILE*2){
+        var t = newType(prev); S.tiles.push({ x:x, type:t }); prev = t; x += TILE;
+      }
+    }
+    function setMode(m){
+      S.mode = m;
+      for (var b=0;b<modeBtns.length;b++){
+        modeBtns[b].classList.toggle("active", parseInt(modeBtns[b].getAttribute("data-mode"),10) === m);
+      }
+    }
+    function needFor(type){ return type === "road" ? 0 : (type === "mud" ? 1 : 2); }
+
+    function drawVehicle(mode, x, ok){
+      ctx.save();
+      var body = "#2E6A8E", accent = "#B85C2E";
+      // ombre
+      ctx.fillStyle = "rgba(35,50,61,.12)";
+      ctx.beginPath(); ctx.ellipse(x+34, GROUND+6, 56, 9, 0, 0, 7); ctx.fill();
+      // corps
+      ctx.fillStyle = body;
+      rr(x-32, GROUND-44, 132, 38, 8); ctx.fill();
+      ctx.fillStyle = "#cfe3f0"; rr(x-18, GROUND-38, 40, 18, 4); ctx.fill();
+      // equipement selon mode
+      ctx.fillStyle = "#23323d";
+      if (mode === 0){ // roues
+        ctx.beginPath(); ctx.arc(x-6, GROUND-2, 13, 0, 7); ctx.fill();
+        ctx.beginPath(); ctx.arc(x+74, GROUND-2, 13, 0, 7); ctx.fill();
+        ctx.fillStyle="#9aa6ad";
+        ctx.beginPath(); ctx.arc(x-6, GROUND-2, 4, 0, 7); ctx.fill();
+        ctx.beginPath(); ctx.arc(x+74, GROUND-2, 4, 0, 7); ctx.fill();
+      } else if (mode === 1){ // chenilles
+        rr(x-30, GROUND-12, 128, 18, 9); ctx.fill();
+        ctx.fillStyle="#445";
+        for (var c=0;c<6;c++){ ctx.beginPath(); ctx.arc(x-16+c*23, GROUND-3, 4, 0, 7); ctx.fill(); }
+      } else { // flotteur
+        ctx.fillStyle = "#9a4a22";
+        ctx.beginPath();
+        ctx.moveTo(x-34, GROUND-6); ctx.lineTo(x+102, GROUND-6);
+        ctx.lineTo(x+86, GROUND+12); ctx.lineTo(x-18, GROUND+12);
+        ctx.closePath(); ctx.fill();
+      }
+      // drapeau accent
+      ctx.fillStyle = accent; rr(x+44, GROUND-58, 5, 16, 1); ctx.fill();
+      ctx.beginPath(); ctx.arc(x+46, GROUND-60, 4, 0, 7); ctx.fill();
+      ctx.restore();
+    }
+    function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+    function label(t,x,y,col){ ctx.fillStyle=col; ctx.font="700 15px 'JetBrains Mono', monospace"; ctx.textAlign="center"; ctx.fillText(t,x,y); }
+
+    function frame(){
+      // fond ciel
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle = "#eef5f9"; ctx.fillRect(0,0,W,GROUND);
+      // terrain
+      for (var i=0;i<S.tiles.length;i++){
+        var t = S.tiles[i];
+        ctx.fillStyle = COLORS[t.type];
+        ctx.fillRect(Math.round(t.x), GROUND, TILE+1, H-GROUND);
+        var name = t.type === "road" ? "ROUTE" : (t.type === "mud" ? "BOUE" : "EAU");
+        label(name, t.x + TILE/2, GROUND + 40, "rgba(255,255,255,.92)");
+      }
+      // ligne de decision
+      ctx.strokeStyle = "rgba(184,92,46,.45)"; ctx.lineWidth = 2; ctx.setLineDash([6,6]);
+      ctx.beginPath(); ctx.moveTo(VX+34, 8); ctx.lineTo(VX+34, H-8); ctx.stroke();
+      ctx.setLineDash([]);
+      // vehicule
+      drawVehicle(S.mode, VX, true);
+      // flash
+      if (S.flash > 0){
+        ctx.fillStyle = S.flashCol === "ok" ? "rgba(47,143,91,.22)" : "rgba(192,73,47,.28)";
+        ctx.fillRect(0,0,W,H); S.flash--;
+      }
+      // HUD
+      ctx.fillStyle = "#23323d"; ctx.font = "700 18px 'JetBrains Mono', monospace"; ctx.textAlign = "left";
+      ctx.fillText("SCORE " + S.score, 16, 28);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#c0492f";
+      ctx.fillText("VIES " + (S.lives>0?S.lives:0), W-16, 28);
+    }
+
+    function step(){
+      if (!running) return;
+      // avance
+      for (var i=0;i<S.tiles.length;i++){ S.tiles[i].x -= S.speed; }
+      // recycle / ajoute
+      if (S.tiles.length && S.tiles[0].x + TILE < -10){ S.tiles.shift(); }
+      var lastX = S.tiles.length ? S.tiles[S.tiles.length-1].x : 0;
+      while (lastX < W + TILE){
+        var prev = S.tiles.length ? S.tiles[S.tiles.length-1].type : "road";
+        var nt = newType(prev);
+        S.tiles.push({ x:lastX + TILE, type:nt }); lastX += TILE;
+      }
+      // tuile active sous le vehicule
+      var center = VX + 34, idx = -1;
+      for (var k=0;k<S.tiles.length;k++){
+        if (S.tiles[k].x <= center && center < S.tiles[k].x + TILE){ idx = k; break; }
+      }
+      if (idx !== -1 && idx !== S.current){
+        S.current = idx;
+        var t = S.tiles[idx];
+        if (S.mode === needFor(t.type)){
+          S.score++; S.flash = 8; S.flashCol = "ok";
+          S.speed = Math.min(7.5, 2.6 + S.score*0.07);
+        } else {
+          S.lives--; S.flash = 12; S.flashCol = "no";
+          if (S.lives <= 0){ gameOver(); }
+        }
+      }
+      frame();
+      raf = requestAnimationFrame(step);
+    }
+
+    function start(){
+      reset(); setMode(0);
+      ovStart.classList.add("hidden"); ovEnd.classList.add("hidden");
+      running = true;
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(step);
+    }
+    function gameOver(){
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      endTitle.textContent = S.score >= 20 ? "Excellent pilote\u00a0!" : "Termin\u00e9\u00a0!";
+      endScore.textContent = "Tu as franchi " + S.score + " zones. " + (S.score >= 20 ? "Tu ma\u00eetrises le terrain." : "Rejoue pour faire mieux\u00a0!");
+      ovEnd.classList.remove("hidden");
+    }
+
+    // commandes
+    for (var b=0;b<modeBtns.length;b++){
+      (function(btn){
+        btn.addEventListener("click", function(){ if (running) setMode(parseInt(btn.getAttribute("data-mode"),10)); });
+      })(modeBtns[b]);
+    }
+    document.addEventListener("keydown", function(e){
+      if (!running) return;
+      if (e.key === "1"){ setMode(0); }
+      else if (e.key === "2"){ setMode(1); }
+      else if (e.key === "3"){ setMode(2); }
+    });
+    document.getElementById("btn-start").addEventListener("click", function(){ if (gameUnlocked) start(); });
+    document.getElementById("btn-replay").addEventListener("click", start);
+
+    // image figee de depart
+    reset(); frame();
+    return {};
+  })();
+
+})();
+</script>
+</body>
+</html>

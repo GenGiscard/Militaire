@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V&eacute;hicules militaires &mdash; Simulateurs &amp; jeux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F8F4EC; --ink:#23323d; --ink-soft:#5b6b75;
+    --copper:#B85C2E; --copper-d:#8f4420; --steel:#2E6A8E; --steel-soft:#e2edf3;
+    --card:#fff; --line:#e7ddca; --line-d:#d9cdb3;
+    --ok:#2f8f5b; --ok-bg:#e9f6ee; --no:#c0492f; --no-bg:#fbe9e5;
+    --shadow:0 10px 30px rgba(35,50,61,.08);
+    --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+    --disp:'Bricolage Grotesque',system-ui,-apple-system,Segoe UI,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--disp);font-size:18px;line-height:1.55;
+    background-image:linear-gradient(rgba(46,106,142,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(46,106,142,.04) 1px,transparent 1px);background-size:28px 28px;}
+  .page{max-width:900px;margin:0 auto;padding:0 22px 100px}
+  header.top{padding:44px 0 14px}
+  .eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--copper)}
+  h1{font-size:clamp(28px,4.2vw,46px);line-height:1.04;letter-spacing:-.03em;margin:.1em 0 .25em;font-weight:800}
+  .lead{font-size:17px;color:var(--ink-soft);max-width:64ch;margin:0}
+
+  /* tabs */
+  .tabs{position:sticky;top:0;z-index:30;display:flex;gap:8px;background:rgba(248,244,236,.92);backdrop-filter:blur(5px);padding:14px 0;margin:14px 0 6px;border-bottom:1px solid var(--line)}
+  .tab{font-family:var(--disp);font-weight:700;font-size:16px;border:1.5px solid var(--line-d);background:#fff;color:var(--ink);border-radius:12px;padding:11px 20px;cursor:pointer;transition:.15s}
+  .tab:hover{background:var(--steel-soft)}
+  .tab.active{background:var(--steel);color:#fff;border-color:var(--steel)}
+  .panel{display:none}
+  .panel.active{display:block;animation:fade .25s}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+
+  /* sim / game card */
+  .mod{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 24px;margin:18px 0;box-shadow:var(--shadow)}
+  .mod h2{font-size:24px;letter-spacing:-.02em;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .mod .pill{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--copper);background:#fbeee6;border:1px solid #f0d8c8;border-radius:999px;padding:4px 10px;font-weight:700}
+  .mod .sub{color:var(--ink-soft);font-size:15px;margin:0 0 16px}
+
+  canvas{width:100%;height:auto;display:block;background:#eef5f9;border:1px solid var(--line);border-radius:14px}
+
+  /* sliders */
+  .ctrls{display:grid;gap:16px;margin:16px 0 18px}
+  .ctrl label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:14px;margin-bottom:7px}
+  .ctrl label .v{color:var(--copper-d);font-weight:700}
+  input[type=range]{-webkit-appearance:none;width:100%;height:8px;border-radius:999px;background:linear-gradient(90deg,var(--steel-soft),#cfe0eb);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--copper);border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--copper);border:3px solid #fff;cursor:pointer}
+
+  .readout{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:6px}
+  .stat{font-family:var(--mono);font-size:14px;background:#fbfaf6;border:1px solid var(--line-d);border-radius:10px;padding:8px 13px}
+  .stat b{color:var(--steel)}
+  .verdict{font-family:var(--disp);font-weight:700;font-size:15px;border-radius:999px;padding:8px 16px}
+  .verdict.ok{background:var(--ok-bg);color:#1f6b40}
+  .verdict.no{background:var(--no-bg);color:var(--no)}
+
+  /* comparison gauge (pression) */
+  .gauge{margin-top:14px;background:#fbfaf6;border:1px solid var(--line-d);border-radius:12px;padding:14px 16px}
+  .gauge .track{position:relative;height:14px;background:#eadfca;border-radius:999px;margin:26px 0 8px}
+  .gauge .fill{position:absolute;left:0;top:0;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--ok),#e0b13a,var(--no));transition:width .15s}
+  .gauge .mark{position:absolute;top:-22px;transform:translateX(-50%);font-family:var(--mono);font-size:11px;color:var(--ink-soft);white-space:nowrap}
+  .gauge .mark::after{content:"";position:absolute;left:50%;top:18px;width:1px;height:20px;background:var(--ink-soft);opacity:.4}
+  .gauge .cursor{position:absolute;top:-4px;width:3px;height:22px;background:var(--copper);border-radius:2px;transition:left .15s}
+  .note{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin-top:8px}
+
+  /* buttons */
+  .btn{font-family:var(--disp);font-weight:600;font-size:15px;border:0;border-radius:11px;padding:11px 18px;cursor:pointer;transition:transform .1s,filter .15s}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--copper);color:#fff}
+  .btn-primary:hover{filter:brightness(1.06)}
+  .btn-ghost{background:#fff;color:var(--steel);border:1px solid var(--line-d)}
+
+  /* game overlays */
+  .canvas-box{position:relative}
+  .overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(35,50,61,.78);color:#fff;border-radius:14px;text-align:center;padding:20px}
+  .overlay.hidden{display:none}
+  .overlay h3{font-size:24px;margin:0}.overlay p{margin:0;opacity:.9;max-width:46ch}
+  .game-row{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+
+  /* compromis */
+  .budget{font-family:var(--mono);font-size:14px;margin:4px 0 14px;background:#fbfaf6;border:1px solid var(--line-d);border-radius:10px;padding:9px 14px;display:inline-block}
+  .budget b{color:var(--copper-d)}
+  .budget.bad b{color:var(--no)}
+  .missions{display:grid;gap:10px;margin-top:8px}
+  .mcard{display:flex;align-items:center;gap:12px;background:#fbfaf6;border:1px solid var(--line-d);border-left:5px solid var(--line-d);border-radius:12px;padding:12px 16px}
+  .mcard .name{font-weight:700}
+  .mcard .req{font-family:var(--mono);font-size:12.5px;color:var(--ink-soft)}
+  .mcard .res{margin-left:auto;font-weight:700;font-family:var(--mono);font-size:13px}
+  .mcard.pass{border-left-color:var(--ok);background:var(--ok-bg)}.mcard.pass .res{color:#1f6b40}
+  .mcard.fail{border-left-color:var(--no);background:var(--no-bg)}.mcard.fail .res{color:var(--no)}
+  .score-line{margin-top:14px;font-weight:700;font-size:17px}
+
+  /* mission rush */
+  .mr-stage{position:relative;background:#eef5f9;border:1px solid var(--line);border-radius:14px;min-height:230px;padding:28px 20px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;overflow:hidden}
+  .mr-timer{position:absolute;top:0;left:0;height:7px;width:100%;background:linear-gradient(90deg,var(--copper),var(--steel));transition:width .08s linear}
+  .mr-hud{position:absolute;top:13px;left:16px;right:16px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--ink)}
+  .mr-hud .lives{color:var(--no)}
+  .mr-mission{text-align:center}
+  .mr-mission .mi{font-size:48px;line-height:1}
+  .mr-mission .mt{font-size:21px;font-weight:700;margin-top:8px;letter-spacing:-.01em}
+  .mr-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+  .mr-choice{font-family:var(--disp);font-weight:600;font-size:15px;background:#fbfaf6;border:1.5px solid var(--line-d);border-radius:12px;padding:13px 12px;cursor:pointer;transition:.12s;text-align:center}
+  .mr-choice:hover{border-color:var(--steel);background:var(--steel-soft);transform:translateY(-1px)}
+  .mr-stage.ok{animation:flok .35s}
+  .mr-stage.no{animation:flno .4s}
+  @keyframes flok{0%{background:#d9f0e2}100%{background:#eef5f9}}
+  @keyframes flno{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+  @media (max-width:620px){ .page{padding:0 14px 80px} .mod{padding:18px 16px} }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="top">
+    <div class="eyebrow">Techno &middot; Physique &mdash; Manipuler &amp; jouer</div>
+    <h1>Simulateurs &amp; jeux</h1>
+    <p class="lead">Touche aux r&eacute;glages et observe ce qui change&nbsp;: c&rsquo;est en manipulant qu&rsquo;on comprend la physique des engins. Puis teste tes r&eacute;flexes et ta strat&eacute;gie dans les deux jeux.</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="sim">&#128300; Simulateurs</button>
+    <button class="tab" data-tab="jeux">&#127918; Jeux</button>
+  </div>
+
+  <!-- =================== PANEL SIMULATEURS =================== -->
+  <div class="panel active" id="panel-sim">
+
+    <!-- SIM 1 : PRESSION -->
+    <section class="mod">
+      <h2><span class="pill">P = F / S</span> La pression sous le v&eacute;hicule</h2>
+      <p class="sub">Augmente la <b>surface de contact</b> (comme des chenilles) et regarde la pression chuter. Au-del&agrave; de la limite du sol, le v&eacute;hicule s&rsquo;enfonce.</p>
+      <canvas id="cv-p" width="760" height="280" role="img" aria-label="Simulateur de pression sur la boue"></canvas>
+      <div class="ctrls">
+        <div class="ctrl">
+          <label>Masse du v&eacute;hicule <span class="v" id="p-m-v">56 t</span></label>
+          <input type="range" id="p-m" min="1" max="60" step="1" value="56">
+        </div>
+        <div class="ctrl">
+          <label>Surface de contact au sol <span class="v" id="p-s-v">6,0 m&sup2;</span></label>
+          <input type="range" id="p-s" min="2" max="80" step="1" value="60">
+        </div>
+      </div>
+      <div class="readout">
+        <span class="stat">Poids&nbsp;: <b id="p-f">560 000</b> N</span>
+        <span class="stat">Pression&nbsp;: <b id="p-pa">93 333</b> Pa</span>
+        <span class="stat"><b id="p-bar">0,93</b> bar</span>
+        <span class="verdict ok" id="p-verdict">Reste en surface</span>
+      </div>
+      <div class="gauge">
+        <div class="track">
+          <div class="fill" id="p-fill" style="width:46%"></div>
+          <div class="cursor" id="p-cursor" style="left:46%"></div>
+          <span class="mark" style="left:16%">humain debout</span>
+          <span class="mark" style="left:80%">char (chenilles)</span>
+          <span class="mark" style="left:100%">limite du sol</span>
+        </div>
+        <div class="note">&Eacute;chelle 0 &rarr; 1 bar. Pour comparaison&nbsp;: un talon aiguille d&eacute;passe <b>60 bar</b> (hors de l&rsquo;&eacute;chelle&nbsp;!).</div>
+      </div>
+    </section>
+
+    <!-- SIM 2 : FLOTTAISON -->
+    <section class="mod">
+      <h2><span class="pill">Archim&egrave;de</span> Flotter ou couler&nbsp;?</h2>
+      <p class="sub">Le v&eacute;hicule flotte si la <b>pouss&eacute;e</b> de l&rsquo;eau atteint son <b>poids</b>. Agrandis la coque (volume d&rsquo;air) ou alourdis la charge et regarde la ligne d&rsquo;eau monter.</p>
+      <canvas id="cv-a" width="760" height="280" role="img" aria-label="Simulateur de flottaison"></canvas>
+      <div class="ctrls">
+        <div class="ctrl">
+          <label>Volume de la coque (air) <span class="v" id="a-v-v">20 m&sup3;</span></label>
+          <input type="range" id="a-v" min="3" max="40" step="1" value="20">
+        </div>
+        <div class="ctrl">
+          <label>Charge embarqu&eacute;e <span class="v" id="a-c-v">4 t</span></label>
+          <input type="range" id="a-c" min="0" max="40" step="1" value="4">
+        </div>
+      </div>
+      <div class="readout">
+        <span class="stat">Poids&nbsp;: <b id="a-poids">160 000</b> N</span>
+        <span class="stat">Pouss&eacute;e max&nbsp;: <b id="a-pouss">200 000</b> N</span>
+        <span class="verdict ok" id="a-verdict">Flotte &mdash; immerg&eacute; &agrave; 80%</span>
+      </div>
+      <div class="note" style="margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--ink-soft)">Masse &agrave; vide du v&eacute;hicule&nbsp;: 12 t &middot; eau&nbsp;: 1000 kg/m&sup3; &middot; g &asymp; 10 N/kg.</div>
+    </section>
+
+    <!-- SIM 3 : BLINDAGE -->
+    <section class="mod">
+      <h2><span class="pill">G&eacute;om&eacute;trie</span> Le blindage inclin&eacute;</h2>
+      <p class="sub">M&ecirc;me plaque, m&ecirc;me poids&nbsp;: en l&rsquo;<b>inclinant</b>, le projectile doit traverser plus de mati&egrave;re. L&rsquo;&eacute;paisseur &laquo;&nbsp;vue&nbsp;&raquo; augmente.</p>
+      <canvas id="cv-b" width="760" height="280" role="img" aria-label="Simulateur de blindage incliné"></canvas>
+      <div class="ctrls">
+        <div class="ctrl">
+          <label>&Eacute;paisseur r&eacute;elle de la plaque <span class="v" id="b-e-v">80 mm</span></label>
+          <input type="range" id="b-e" min="20" max="200" step="5" value="80">
+        </div>
+        <div class="ctrl">
+          <label>Inclinaison <span class="v" id="b-a-v">0&deg;</span></label>
+          <input type="range" id="b-a" min="0" max="70" step="1" value="0">
+        </div>
+      </div>
+      <div class="readout">
+        <span class="stat">&Eacute;paisseur r&eacute;elle&nbsp;: <b id="b-e2">80</b> mm</span>
+        <span class="stat">&Eacute;paisseur vue&nbsp;: <b id="b-eff">80</b> mm</span>
+        <span class="stat">Gain&nbsp;: <b id="b-ratio">&times;1,0</b></span>
+        <span class="verdict ok" id="b-verdict">Poids inchang&eacute;</span>
+      </div>
+    </section>
+
+    <!-- SIM 4 : BANC D'ESSAI -->
+    <section class="mod">
+      <h2><span class="pill">P / m</span> Banc d&rsquo;essai moteur</h2>
+      <p class="sub">Plus de <b>puissance</b> acc&eacute;l&egrave;re le v&eacute;hicule&nbsp;; plus de <b>blindage</b> l&rsquo;alourdit et le ralentit. Trouve le bon compromis, puis lance l&rsquo;essai sur 100 m.</p>
+      <canvas id="cv-bench" width="760" height="200" role="img" aria-label="Banc d'essai : course sur 100 m"></canvas>
+      <div class="ctrls">
+        <div class="ctrl">
+          <label>Puissance moteur <span class="v" id="be-p-v">800 kW</span></label>
+          <input type="range" id="be-p" min="200" max="1500" step="50" value="800">
+        </div>
+        <div class="ctrl">
+          <label>Blindage embarqu&eacute; <span class="v" id="be-b-v">8 t</span></label>
+          <input type="range" id="be-b" min="0" max="30" step="1" value="8">
+        </div>
+      </div>
+      <div class="readout">
+        <span class="stat">Masse totale&nbsp;: <b id="be-m">28</b> t</span>
+        <span class="stat">Rapport P/m&nbsp;: <b id="be-pm">28,6</b> kW/t</span>
+        <span class="stat">Chrono 100 m&nbsp;: <b id="be-t">&mdash;</b></span>
+        <span class="verdict ok" id="be-verdict">Pr&ecirc;t &agrave; l&rsquo;essai</span>
+      </div>
+      <div class="game-row" style="margin-top:14px">
+        <button class="btn btn-primary" id="be-run">&#9654; Lancer l&rsquo;essai</button>
+      </div>
+      <div class="note" style="margin-top:10px;font-family:var(--mono);font-size:12px;color:var(--ink-soft)">Masse &agrave; vide&nbsp;: 20 t. C&rsquo;est le <b>rapport puissance/masse</b> qui fait la performance&nbsp;: c&rsquo;est pour &ccedil;a qu&rsquo;un char tr&egrave;s lourd a besoin d&rsquo;un moteur &eacute;norme.</div>
+    </section>
+
+  </div>
+
+  <!-- =================== PANEL JEUX =================== -->
+  <div class="panel" id="panel-jeux">
+
+    <!-- GAME 1 : LARGAGE -->
+    <section class="mod">
+      <h2><span class="pill">R&eacute;flexe</span> Largage de pr&eacute;cision</h2>
+      <p class="sub">Le drone avance. La caisse part avec sa <b>vitesse</b> et tombe&nbsp;: il faut donc larguer <b>avant</b> la cible. Touche <b>Espace</b> (ou le bouton) pour l&acirc;cher. 6 largages.</p>
+      <div class="canvas-box">
+        <canvas id="cv-drone" width="760" height="360" role="img" aria-label="Jeu de largage au drone"></canvas>
+        <div class="overlay" id="d-start">
+          <h3>Largage de pr&eacute;cision</h3>
+          <p>Anticipe&nbsp;: la caisse continue d&rsquo;avancer en tombant. Vise le centre de la cible&nbsp;!</p>
+          <button class="btn btn-primary" id="d-go">Commencer</button>
+        </div>
+        <div class="overlay hidden" id="d-end">
+          <h3 id="d-title">Mission termin&eacute;e</h3>
+          <p id="d-score"></p>
+          <button class="btn btn-primary" id="d-replay">Rejouer</button>
+        </div>
+      </div>
+      <div class="game-row">
+        <button class="btn btn-ghost" id="d-drop">&#128230; Larguer (Espace)</button>
+      </div>
+    </section>
+
+    <!-- GAME : MISSION RUSH -->
+    <section class="mod">
+      <h2><span class="pill">R&eacute;flexe</span> Mission rush</h2>
+      <p class="sub">Une mission s&rsquo;affiche&nbsp;: choisis le <b>bon engin avant la fin du temps</b>&nbsp;! Plus tu encha&icirc;nes, plus &ccedil;a acc&eacute;l&egrave;re. 3 vies.</p>
+      <div class="canvas-box">
+        <div class="mr-stage" id="mr-stage">
+          <div class="mr-timer" id="mr-timer"></div>
+          <div class="mr-hud">
+            <span>SCORE <b id="mr-score">0</b> &middot; combo <b id="mr-combo">0</b></span>
+            <span class="lives">VIES <b id="mr-lives">3</b></span>
+          </div>
+          <div class="mr-mission">
+            <div class="mi" id="mr-icon">&#127919;</div>
+            <div class="mt" id="mr-text">Pr&ecirc;t&nbsp;?</div>
+          </div>
+        </div>
+        <div class="overlay" id="mr-start">
+          <h3>Mission rush</h3>
+          <p>Associe chaque mission au bon v&eacute;hicule. Vite&nbsp;: le temps file&nbsp;!</p>
+          <button class="btn btn-primary" id="mr-go">Commencer</button>
+        </div>
+        <div class="overlay hidden" id="mr-end">
+          <h3 id="mr-end-title">Termin&eacute;&nbsp;!</h3>
+          <p id="mr-end-score"></p>
+          <button class="btn btn-primary" id="mr-replay">Rejouer</button>
+        </div>
+      </div>
+      <div class="mr-choices" id="mr-choices">
+        <button class="mr-choice" data-engin="roues">&#128666; Blind&eacute; &agrave; roues</button>
+        <button class="mr-choice" data-engin="char">&#128737; Char (chenilles)</button>
+        <button class="mr-choice" data-engin="amphibie">&#128676; V&eacute;hicule amphibie</button>
+        <button class="mr-choice" data-engin="drone">&#128745; Drone</button>
+        <button class="mr-choice" data-engin="robot">&#129302; Robot de d&eacute;minage</button>
+      </div>
+    </section>
+
+    <!-- GAME 2 : COMPROMIS -->
+    <section class="mod">
+      <h2><span class="pill">Strat&eacute;gie</span> Le compromis</h2>
+      <p class="sub">Tu disposes de <b>12 points</b> &agrave; r&eacute;partir entre trois qualit&eacute;s. Impossible de tout maximiser&nbsp;! Choisis bien pour r&eacute;ussir un maximum de missions.</p>
+      <div class="budget" id="c-budget">Points utilis&eacute;s&nbsp;: <b>0</b> / 12</div>
+      <div class="ctrls">
+        <div class="ctrl">
+          <label>&#128737; Protection <span class="v" id="c-p-v">0</span></label>
+          <input type="range" id="c-p" min="0" max="8" step="1" value="0">
+        </div>
+        <div class="ctrl">
+          <label>&#128640; Mobilit&eacute; <span class="v" id="c-m-v">0</span></label>
+          <input type="range" id="c-m" min="0" max="8" step="1" value="0">
+        </div>
+        <div class="ctrl">
+          <label>&#128065; Observation <span class="v" id="c-o-v">0</span></label>
+          <input type="range" id="c-o" min="0" max="8" step="1" value="0">
+        </div>
+      </div>
+      <button class="btn btn-primary" id="c-run">Lancer les missions</button>
+      <div class="missions" id="c-missions"></div>
+      <div class="score-line" id="c-result" style="display:none"></div>
+    </section>
+
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var G = 10; // N/kg
+  function id(x){ return document.getElementById(x); }
+  function frInt(x){ return Math.round(x).toLocaleString("fr-FR"); }
+  function frDec(x,n){ return x.toFixed(n).replace(".", ","); }
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+  function rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function ctxText(ctx,t,x,y,size,col,align,weight){ ctx.fillStyle=col; ctx.font=(weight||"700")+" "+size+"px 'JetBrains Mono', monospace"; ctx.textAlign=align||"center"; ctx.textBaseline="middle"; ctx.fillText(t,x,y); }
+  function arrow(ctx,x1,y1,x2,y2,col,w){ ctx.save(); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.lineCap="round"; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); var a=Math.atan2(y2-y1,x2-x1),h=8+w; ctx.beginPath(); ctx.moveTo(x2,y2); ctx.lineTo(x2-h*Math.cos(a-0.4),y2-h*Math.sin(a-0.4)); ctx.lineTo(x2-h*Math.cos(a+0.4),y2-h*Math.sin(a+0.4)); ctx.closePath(); ctx.fill(); ctx.restore(); }
+
+  /* ===================== ONGLETS ===================== */
+  var tabs = document.querySelectorAll(".tab");
+  var stopGames = [];
+  for (var t=0;t<tabs.length;t++){
+    (function(btn){
+      btn.addEventListener("click", function(){
+        var name = btn.getAttribute("data-tab");
+        for (var i=0;i<tabs.length;i++){ tabs[i].classList.toggle("active", tabs[i]===btn); }
+        id("panel-sim").classList.toggle("active", name==="sim");
+        id("panel-jeux").classList.toggle("active", name==="jeux");
+        if (name === "sim"){ for (var g=0;g<stopGames.length;g++){ stopGames[g](); } }
+      });
+    })(tabs[t]);
+  }
+
+  /* ===================== SIM 1 : PRESSION ===================== */
+  (function(){
+    var cv=id("cv-p"); if(!cv) return; var ctx=cv.getContext("2d"); var W=cv.width,H=cv.height;
+    var SOIL=100000; // Pa, limite d'enfoncement
+    var mEl=id("p-m"), sEl=id("p-s");
+    function update(){
+      var m = parseInt(mEl.value,10);            // tonnes
+      var S = parseInt(sEl.value,10)/10;          // m2 (slider 2..80 -> 0,2..8,0)
+      var F = m*1000*G;                           // N
+      var P = F/S;                                // Pa
+      id("p-m-v").textContent = m+" t";
+      id("p-s-v").textContent = frDec(S,1)+" m\u00b2";
+      id("p-f").textContent = frInt(F);
+      id("p-pa").textContent = frInt(P);
+      id("p-bar").textContent = frDec(P/100000,2);
+      var sinks = P > SOIL;
+      var v=id("p-verdict"); v.textContent = sinks?"S\u2019enfonce !":"Reste en surface"; v.className="verdict "+(sinks?"no":"ok");
+      // jauge 0..1 bar
+      var pct = clamp(P/100000*100,1,100);
+      id("p-fill").style.width = pct+"%"; id("p-cursor").style.left = pct+"%";
+      draw(S,P,sinks);
+    }
+    function draw(S,P,sinks){
+      ctx.clearRect(0,0,W,H);
+      var groundY=190;
+      // boue
+      ctx.fillStyle="#5f4a36"; ctx.fillRect(0,groundY,W,H-groundY);
+      ctx.fillStyle="#6d573f"; for(var d=0;d<W;d+=40){ ctx.fillRect(d,groundY,20,5); }
+      ctx.strokeStyle="#3f3225"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,groundY); ctx.lineTo(W,groundY); ctx.stroke();
+      ctxText(ctx,"BOUE",36,H-26,14,"#d8c7ad","left");
+      // enfoncement proportionnel a la pression
+      var sink = clamp(P/SOIL,0,2)*46;
+      var cx=W/2;
+      var padW = clamp(40 + S*30, 50, 360);       // surface visible -> largeur du patin
+      var bw=200, bh=66;
+      var padTop = groundY - 12 + sink;
+      var bBottom = padTop, bTop=bBottom-bh;
+      // patin (surface de contact)
+      ctx.fillStyle = sinks ? "#8a3b28" : "#234e68";
+      rr(ctx, cx-padW/2, padTop, padW, 14, 6); ctx.fill();
+      // corps
+      ctx.fillStyle="#2E6A8E"; rr(ctx, cx-bw/2, bTop, bw, bh, 10); ctx.fill();
+      ctx.fillStyle="#1f4d68"; rr(ctx, cx-bw/2, bTop, bw, 18, 10); ctx.fill();
+      ctxText(ctx,"VEHICULE",cx,bTop+bh/2,16,"#eaf3f9","center");
+      // fleches de surface
+      arrow(ctx, cx-padW/2, padTop+30, cx+padW/2, padTop+30, sinks?"#e0a89a":"#9fc3d8", 3);
+      ctxText(ctx,"SURFACE DE CONTACT",cx,padTop+46,12,sinks?"#e7c3b8":"#bcd6e6","center");
+      // verdict
+      ctxText(ctx, sinks?"PRESSION TROP FORTE":"PRESSION OK", cx, 30, 18, sinks?"#c0492f":"#2f8f5b","center");
+    }
+    mEl.addEventListener("input",update); sEl.addEventListener("input",update); update();
+  })();
+
+  /* ===================== SIM 2 : FLOTTAISON ===================== */
+  (function(){
+    var cv=id("cv-a"); if(!cv) return; var ctx=cv.getContext("2d"); var W=cv.width,H=cv.height;
+    var BASE=12; // t a vide
+    var vEl=id("a-v"), cEl=id("a-c");
+    function update(){
+      var V=parseInt(vEl.value,10);              // m3 (air)
+      var charge=parseInt(cEl.value,10);          // t
+      var poids=(BASE+charge)*1000*G;             // N
+      var pousseeMax=1000*V*G;                    // N
+      var floats = pousseeMax >= poids;
+      var frac = floats ? clamp(poids/pousseeMax,0,1) : 1; // fraction immergee
+      id("a-v-v").textContent=V+" m\u00b3"; id("a-c-v").textContent=charge+" t";
+      id("a-poids").textContent=frInt(poids); id("a-pouss").textContent=frInt(pousseeMax);
+      var ver=id("a-verdict");
+      ver.textContent = floats ? ("Flotte \u2014 immerg\u00e9 \u00e0 "+Math.round(frac*100)+"%") : "Coule !";
+      ver.className="verdict "+(floats?"ok":"no");
+      draw(frac,floats,poids,pousseeMax);
+    }
+    function draw(frac,floats,poids,pousseeMax){
+      ctx.clearRect(0,0,W,H);
+      var waterTop=120;
+      ctx.fillStyle="#cfe3ee"; ctx.fillRect(0,waterTop,W,H-waterTop);
+      var cx=300, hw=210, hh=86;
+      var topY;
+      if (floats){ topY = waterTop - (1-frac)*hh; }
+      else { topY = waterTop + 40; } // coule : descend sous l'eau
+      // coque
+      ctx.fillStyle="#B85C2E"; rr(ctx, cx-hw/2, topY, hw, hh, 12); ctx.fill();
+      ctx.fillStyle="#9a4a22"; rr(ctx, cx-44, topY-28, 88, 34, 7); ctx.fill();
+      ctx.fillStyle="#f6e3d4"; rr(ctx, cx-hw/2+14, topY+14, hw-28, hh-30, 7); ctx.fill();
+      ctxText(ctx,"AIR",cx,topY+hh/2+2,20,"#9a4a22","center");
+      // tint eau
+      ctx.save(); ctx.fillStyle="rgba(120,170,200,.42)"; ctx.fillRect(0,waterTop,W,H-waterTop); ctx.restore();
+      // ligne d'eau
+      ctx.strokeStyle="#7fb0cc"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,waterTop); ctx.lineTo(W,waterTop); ctx.stroke();
+      ctxText(ctx,"EAU",36,H-24,14,"#5b8aa6","left");
+      // barres poids / poussee
+      var bx=600, maxN=Math.max(poids,pousseeMax,1), maxH=150, base=H-40;
+      var hP=poids/maxN*maxH, hF=pousseeMax/maxN*maxH;
+      ctx.fillStyle="#23323d"; rr(ctx,bx,base-hP,46,hP,4); ctx.fill();
+      ctxText(ctx,"POIDS",bx+23,base+16,12,"#23323d","center");
+      ctx.fillStyle="#2E6A8E"; rr(ctx,bx+70,base-hF,46,hF,4); ctx.fill();
+      ctxText(ctx,"POUSSEE",bx+93,base+16,12,"#2E6A8E","center");
+      ctxText(ctx, floats?"FLOTTE":"COULE", cx, 28, 18, floats?"#2f8f5b":"#c0492f","center");
+    }
+    vEl.addEventListener("input",update); cEl.addEventListener("input",update); update();
+  })();
+
+  /* ===================== SIM 3 : BLINDAGE ===================== */
+  (function(){
+    var cv=id("cv-b"); if(!cv) return; var ctx=cv.getContext("2d"); var W=cv.width,H=cv.height;
+    var eEl=id("b-e"), aEl=id("b-a");
+    function update(){
+      var e=parseInt(eEl.value,10);              // mm
+      var ang=parseInt(aEl.value,10);             // deg (depuis la verticale)
+      var rad=ang*Math.PI/180;
+      var eff=e/Math.cos(rad);                    // epaisseur vue
+      var ratio=eff/e;
+      id("b-e-v").textContent=e+" mm"; id("b-a-v").textContent=ang+"\u00b0";
+      id("b-e2").textContent=e; id("b-eff").textContent=Math.round(eff);
+      id("b-ratio").textContent="\u00d7"+frDec(ratio,1);
+      draw(e,ang,eff,ratio);
+    }
+    function draw(e,ang,eff,ratio){
+      ctx.clearRect(0,0,W,H);
+      var cx=420, cy=H/2, yLine=cy;
+      var thick=clamp(e/3,8,46);                  // epaisseur visuelle px
+      var rad=ang*Math.PI/180;
+      // plaque inclinee : segment incline de la verticale d'un angle "ang"
+      var len=150;
+      var dx=Math.sin(rad)*len, dy=Math.cos(rad)*len;
+      var ax=cx-dx, ay=cy-dy, bx=cx+dx, by=cy+dy;
+      ctx.save();
+      ctx.strokeStyle="#2E6A8E"; ctx.lineWidth=thick; ctx.lineCap="round";
+      ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.stroke();
+      ctx.restore();
+      ctxText(ctx,"BLINDAGE",cx,ay-18,13,"#23323d","center");
+      // projectile horizontal
+      arrow(ctx, 70, yLine, cx-thick/2-4, yLine, "#23323d", 5);
+      ctxText(ctx,"PROJECTILE",150,yLine-20,12,"#23323d","left");
+      // trajet dans la matiere : longueur ~ epaisseur vue (px)
+      var pathPx = clamp(eff/3,8,180);
+      ctx.save(); ctx.strokeStyle="#c0492f"; ctx.lineWidth=8; ctx.lineCap="round";
+      ctx.beginPath(); ctx.moveTo(cx-pathPx/2, yLine); ctx.lineTo(cx+pathPx/2, yLine); ctx.stroke(); ctx.restore();
+      ctxText(ctx,"TRAJET A TRAVERSER",cx+pathPx/2+10,yLine-22,12,"#c0492f","left");
+      ctxText(ctx,"x"+frDec(ratio,1),cx,yLine+34,16,"#c0492f","center");
+    }
+    eEl.addEventListener("input",update); aEl.addEventListener("input",update); update();
+  })();
+
+  /* ===================== JEU 1 : LARGAGE ===================== */
+  (function(){
+    var cv=id("cv-drone"); if(!cv) return; var ctx=cv.getContext("2d"); var W=cv.width,H=cv.height;
+    var GROUND=300;
+    var ovStart=id("d-start"), ovEnd=id("d-end");
+    var S=null, raf=null, running=false;
+    function reset(){
+      S={ drone:{x:0,y:64,vx:3}, crate:null, target:rndTarget(), drops:6, score:0, phase:"aim", pause:0, lastResult:null };
+    }
+    function rndTarget(){ var x=120+Math.random()*(W-260); return {x:x, w:74}; }
+    function launch(){
+      if (!running || S.phase!=="aim" || S.crate) return;
+      S.crate={ x:S.drone.x+30, y:S.drone.y+14, vx:S.drone.vx, vy:0 };
+      S.phase="fall";
+    }
+    function frame(){
+      ctx.clearRect(0,0,W,H);
+      // ciel + sol
+      ctx.fillStyle="#eef5f9"; ctx.fillRect(0,0,W,GROUND);
+      ctx.fillStyle="#cdbb9b"; ctx.fillRect(0,GROUND,W,H-GROUND);
+      ctx.strokeStyle="#b3a07e"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,GROUND); ctx.lineTo(W,GROUND); ctx.stroke();
+      // cible
+      var tx=S.target.x, tw=S.target.w;
+      ctx.fillStyle="#B85C2E"; ctx.fillRect(tx, GROUND-5, tw, 5);
+      ctx.strokeStyle="#B85C2E"; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(tx,GROUND-5); ctx.lineTo(tx,GROUND-22); ctx.moveTo(tx+tw,GROUND-5); ctx.lineTo(tx+tw,GROUND-22); ctx.stroke();
+      ctx.fillStyle="rgba(184,92,46,.35)"; ctx.fillRect(tx+tw/2-2,GROUND-26,4,21);
+      ctxText(ctx,"CIBLE",tx+tw/2,GROUND-34,12,"#8f4420","center");
+      // drone
+      var dx=S.drone.x, dy=S.drone.y;
+      ctx.fillStyle="#23323d"; rr(ctx,dx,dy,52,16,5); ctx.fill();
+      ctx.strokeStyle="#23323d"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(dx+8,dy); ctx.lineTo(dx+8,dy-10); ctx.moveTo(dx+44,dy); ctx.lineTo(dx+44,dy-10); ctx.stroke();
+      ctx.fillStyle="#2E6A8E"; ctx.fillRect(dx-2,dy-12,22,3); ctx.fillRect(dx+32,dy-12,22,3);
+      // caisse
+      if (S.crate){ ctx.fillStyle="#9a4a22"; rr(ctx,S.crate.x-9,S.crate.y-9,18,18,3); ctx.fill(); ctx.strokeStyle="#6f3417"; ctx.lineWidth=2; ctx.stroke(); }
+      // resultat dernier largage
+      if (S.lastResult){ ctxText(ctx,S.lastResult.txt, tx+tw/2, GROUND-58, 16, S.lastResult.col, "center"); }
+      // HUD
+      ctxText(ctx,"SCORE "+S.score,16,24,18,"#23323d","left");
+      ctxText(ctx,"LARGAGES "+S.drops,W-16,24,18,"#8f4420","right");
+      if (S.phase==="aim" && !S.crate){ ctxText(ctx,"ESPACE pour larguer",W/2,H-22,14,"#5b6b75","center"); }
+    }
+    function step(){
+      if (!running) return;
+      // drone avance + boucle
+      S.drone.x += S.drone.vx; if (S.drone.x > W){ S.drone.x = -52; }
+      if (S.phase==="fall" && S.crate){
+        S.crate.x += S.crate.vx; S.crate.vy += 0.35; S.crate.y += S.crate.vy;
+        if (S.crate.y >= GROUND){
+          var land=S.crate.x; var center=S.target.x+S.target.w/2; var dist=Math.abs(land-center);
+          var gain=0, txt="Rat\u00e9", col="#c0492f";
+          if (dist<18){ gain=3; txt="Dans le mille +3"; col="#2f8f5b"; }
+          else if (dist<46){ gain=1; txt="Pas mal +1"; col="#2f8f5b"; }
+          S.score+=gain; S.drops--; S.crate=null; S.lastResult={txt:txt,col:col};
+          S.phase="pause"; S.pause=42;
+        }
+      } else if (S.phase==="pause"){
+        S.pause--;
+        if (S.pause<=0){
+          if (S.drops<=0){ gameOver(); return; }
+          S.target=rndTarget(); S.drone.vx=Math.min(7,3+(6-S.drops)*0.6); S.lastResult=null; S.phase="aim";
+        }
+      }
+      frame();
+      raf=requestAnimationFrame(step);
+    }
+    function start(){ reset(); ovStart.classList.add("hidden"); ovEnd.classList.add("hidden"); running=true; if(raf)cancelAnimationFrame(raf); raf=requestAnimationFrame(step); }
+    function gameOver(){
+      running=false; if(raf)cancelAnimationFrame(raf);
+      id("d-title").textContent = S.score>=12 ? "Pilote d\u2019\u00e9lite\u00a0!" : "Mission termin\u00e9e";
+      id("d-score").textContent = "Score : "+S.score+" / 18. "+(S.score>=12?"Sacr\u00e9 coup d\u2019\u0153il\u00a0!":"Anticipe encore un peu plus le largage.");
+      ovEnd.classList.remove("hidden");
+    }
+    function stop(){ running=false; if(raf)cancelAnimationFrame(raf); }
+    id("d-go").addEventListener("click", start);
+    id("d-replay").addEventListener("click", start);
+    id("d-drop").addEventListener("click", launch);
+    document.addEventListener("keydown", function(e){ if (e.code==="Space" && running){ e.preventDefault(); launch(); } });
+    stopGames.push(stop);
+    reset(); frame();
+  })();
+
+  /* ===================== JEU 2 : LE COMPROMIS ===================== */
+  (function(){
+    var pEl=id("c-p"), mEl=id("c-m"), oEl=id("c-o");
+    if(!pEl) return;
+    var BUDGET=12;
+    var MISSIONS=[
+      { name:"Assaut blind\u00e9", icon:"\u2694\ufe0f", test:function(p,m,o){return p>=5;}, req:"Protection \u2265 5" },
+      { name:"Raid rapide", icon:"\ud83d\ude97", test:function(p,m,o){return m>=6;}, req:"Mobilit\u00e9 \u2265 6" },
+      { name:"Reconnaissance", icon:"\ud83d\udd0d", test:function(p,m,o){return o>=5 && m>=4;}, req:"Observation \u2265 5 et Mobilit\u00e9 \u2265 4" },
+      { name:"Mission polyvalente", icon:"\ud83c\udf96\ufe0f", test:function(p,m,o){return p>=3 && m>=3 && o>=3;}, req:"Chaque qualit\u00e9 \u2265 3" }
+    ];
+    function vals(){ return [parseInt(pEl.value,10),parseInt(mEl.value,10),parseInt(oEl.value,10)]; }
+    function refresh(){
+      var v=vals(), sum=v[0]+v[1]+v[2];
+      id("c-p-v").textContent=v[0]; id("c-m-v").textContent=v[1]; id("c-o-v").textContent=v[2];
+      var b=id("c-budget"); b.innerHTML="Points utilis\u00e9s\u00a0: <b>"+sum+"</b> / "+BUDGET;
+      var over=sum>BUDGET; b.classList.toggle("bad",over);
+      id("c-run").disabled=over;
+      id("c-run").style.opacity = over?0.5:1;
+      id("c-run").style.cursor = over?"not-allowed":"pointer";
+    }
+    function run(){
+      var v=vals(), sum=v[0]+v[1]+v[2];
+      if (sum>BUDGET) return;
+      var box=id("c-missions"); box.innerHTML=""; var passed=0;
+      for (var i=0;i<MISSIONS.length;i++){
+        (function(mis,idx){
+          var ok=mis.test(v[0],v[1],v[2]); if(ok) passed++;
+          var card=document.createElement("div");
+          card.className="mcard "+(ok?"pass":"fail");
+          card.innerHTML="<span style='font-size:22px'>"+mis.icon+"</span>"+
+            "<div><div class='name'>"+mis.name+"</div><div class='req'>"+mis.req+"</div></div>"+
+            "<span class='res'>"+(ok?"R\u00c9USSIE \u2713":"\u00c9CHEC")+"</span>";
+          card.style.opacity=0; box.appendChild(card);
+          setTimeout(function(){ card.style.transition="opacity .25s"; card.style.opacity=1; }, idx*180);
+        })(MISSIONS[i],i);
+      }
+      var r=id("c-result"); r.style.display="block";
+      setTimeout(function(){
+        var msg;
+        if (passed===MISSIONS.length) msg="Incroyable\u00a0! 4/4 \u2014 mais en vrai, aucun engin n\u2019y arrive\u00a0: c\u2019est tout l\u2019int\u00e9r\u00eat du compromis.";
+        else if (passed>=3) msg="Tr\u00e8s bon compromis\u00a0! "+passed+"/4 missions r\u00e9ussies.";
+        else if (passed>=1) msg=passed+"/4 r\u00e9ussies. Essaie une autre r\u00e9partition.";
+        else msg="0/4\u2026 r\u00e9partis tes points autrement et relance.";
+        r.textContent="R\u00e9sultat\u00a0: "+passed+" / 4 \u2014 "+msg;
+      }, MISSIONS.length*180+150);
+    }
+    pEl.addEventListener("input",refresh); mEl.addEventListener("input",refresh); oEl.addEventListener("input",refresh);
+    id("c-run").addEventListener("click",run);
+    refresh();
+  })();
+
+  /* ===================== SIM 4 : BANC D'ESSAI ===================== */
+  (function(){
+    var cv=id("cv-bench"); if(!cv) return; var ctx=cv.getContext("2d"); var W=cv.width,H=cv.height;
+    var BASE=20; // t a vide
+    var pEl=id("be-p"), bEl=id("be-b"), runBtn=id("be-run");
+    var raf=null, busy=false;
+    function compute(){
+      var P=parseInt(pEl.value,10), arm=parseInt(bEl.value,10);
+      var m=BASE+arm, pm=P/m, a=0.08*pm, t=Math.sqrt(2*100/a);
+      return {P:P,arm:arm,m:m,pm:pm,t:t};
+    }
+    function verdict(t){
+      if (t<6.5) return {txt:"Excellent !",cls:"ok"};
+      if (t<9)   return {txt:"Bonne performance",cls:"ok"};
+      if (t<14)  return {txt:"Correct",cls:"ok"};
+      return {txt:"Trop lent : trop lourd ?",cls:"no"};
+    }
+    function draw(p,c){
+      ctx.clearRect(0,0,W,H);
+      var groundY=150, x0=70, x1=W-40, span=x1-x0;
+      ctx.fillStyle="#cdbb9b"; ctx.fillRect(0,groundY,W,H-groundY);
+      ctx.strokeStyle="#b3a07e"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,groundY); ctx.lineTo(W,groundY); ctx.stroke();
+      ctx.strokeStyle="#2E6A8E"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(x0,groundY); ctx.lineTo(x0,groundY-30); ctx.stroke();
+      ctxText(ctx,"DEPART",x0,groundY-40,12,"#2E6A8E","center");
+      ctx.strokeStyle="#B85C2E"; ctx.beginPath(); ctx.moveTo(x1,groundY); ctx.lineTo(x1,groundY-30); ctx.stroke();
+      ctxText(ctx,"100 m",x1,groundY-40,12,"#8f4420","center");
+      var vx=x0+p*span;
+      ctx.fillStyle="#2E6A8E"; rr(ctx,vx-30,groundY-30,60,22,6); ctx.fill();
+      ctx.fillStyle="#1f4d68"; rr(ctx,vx-30,groundY-30,60,8,6); ctx.fill();
+      ctx.fillStyle="#23323d"; ctx.beginPath(); ctx.arc(vx-14,groundY-4,9,0,7); ctx.fill(); ctx.beginPath(); ctx.arc(vx+14,groundY-4,9,0,7); ctx.fill();
+      if(c) ctxText(ctx,"P/m = "+frDec(c.pm,1)+" kW/t",W/2,26,15,"#5b6b75","center");
+    }
+    function updateLive(){
+      var c=compute();
+      id("be-p-v").textContent=c.P+" kW"; id("be-b-v").textContent=c.arm+" t";
+      id("be-m").textContent=c.m; id("be-pm").textContent=frDec(c.pm,1);
+      draw(0,c);
+    }
+    function run(){
+      if (busy) return; var c=compute(); busy=true; runBtn.disabled=true;
+      id("be-t").textContent="\u2026";
+      var vEl=id("be-verdict"); vEl.className="verdict"; vEl.textContent="Essai en cours\u2026";
+      var start=null, dur=2600;
+      function step(ts){
+        if(start===null) start=ts;
+        var tt=Math.min(1,(ts-start)/dur);
+        draw(tt*tt,c);
+        if (tt<1){ raf=requestAnimationFrame(step); }
+        else { var v=verdict(c.t); id("be-t").textContent=frDec(c.t,1)+" s"; vEl.className="verdict "+v.cls; vEl.textContent=v.txt; busy=false; runBtn.disabled=false; }
+      }
+      raf=requestAnimationFrame(step);
+    }
+    pEl.addEventListener("input",updateLive); bEl.addEventListener("input",updateLive);
+    runBtn.addEventListener("click",run);
+    updateLive();
+  })();
+
+  /* ===================== JEU : MISSION RUSH ===================== */
+  (function(){
+    var stage=id("mr-stage"); if(!stage) return;
+    var MISSIONS=[
+      {icon:"\ud83c\udf0a", txt:"Traverser un fleuve", ans:"amphibie"},
+      {icon:"\ud83d\udee3\ufe0f", txt:"Foncer vite sur route", ans:"roues"},
+      {icon:"\ud83c\udfd4\ufe0f", txt:"Avancer en terrain boueux", ans:"char"},
+      {icon:"\ud83d\udee1\ufe0f", txt:"R\u00e9sister aux tirs en premi\u00e8re ligne", ans:"char"},
+      {icon:"\ud83d\udc41\ufe0f", txt:"Observer l\u2019ennemi sans risque", ans:"drone"},
+      {icon:"\ud83d\udca3", txt:"Neutraliser une bombe", ans:"robot"},
+      {icon:"\ud83d\ude97", txt:"Transporter des soldats rapidement", ans:"roues"},
+      {icon:"\ud83c\udf09", txt:"Franchir une rivi\u00e8re sans pont", ans:"amphibie"}
+    ];
+    var timerEl=id("mr-timer"), iconEl=id("mr-icon"), textEl=id("mr-text");
+    var scoreEl=id("mr-score"), comboEl=id("mr-combo"), livesEl=id("mr-lives");
+    var ovStart=id("mr-start"), ovEnd=id("mr-end");
+    var choices=document.querySelectorAll("#mr-choices .mr-choice");
+    var S=null, raf=null, running=false;
+    function reset(){ S={score:0,combo:0,lives:3,cur:null,limit:3200,deadline:0}; updHud(); }
+    function updHud(){ scoreEl.textContent=S.score; comboEl.textContent=S.combo; livesEl.textContent=S.lives; }
+    function nextMission(){
+      S.cur=MISSIONS[Math.floor(Math.random()*MISSIONS.length)];
+      iconEl.innerHTML=S.cur.icon; textEl.innerHTML=S.cur.txt;
+      S.limit=Math.max(1200, 3200 - S.score*90);
+      S.deadline=performance.now()+S.limit;
+    }
+    function loop(ts){
+      if(!running) return;
+      var remain=S.deadline-ts;
+      timerEl.style.width=Math.max(0, remain/S.limit*100)+"%";
+      if (remain<=0){ miss(); }
+      if (running) raf=requestAnimationFrame(loop);
+    }
+    function flash(cls){ stage.classList.remove("ok","no"); void stage.offsetWidth; stage.classList.add(cls); }
+    function answer(engin){
+      if(!running || !S.cur) return;
+      if (engin===S.cur.ans){ S.score++; S.combo++; flash("ok"); }
+      else { S.lives--; S.combo=0; flash("no"); if(S.lives<=0){ updHud(); over(); return; } }
+      updHud(); nextMission();
+    }
+    function miss(){ S.lives--; S.combo=0; flash("no"); updHud(); if(S.lives<=0){ over(); return; } nextMission(); }
+    function start(){ reset(); ovStart.classList.add("hidden"); ovEnd.classList.add("hidden"); running=true; nextMission(); if(raf)cancelAnimationFrame(raf); raf=requestAnimationFrame(loop); }
+    function over(){ running=false; if(raf)cancelAnimationFrame(raf); timerEl.style.width="0%";
+      id("mr-end-title").textContent = S.score>=15?"Strat\u00e8ge n\u00e9 !":"Termin\u00e9 !";
+      id("mr-end-score").textContent = "Tu as r\u00e9ussi "+S.score+" missions. "+(S.score>=15?"Impressionnant !":"Rejoue pour battre ton score !");
+      ovEnd.classList.remove("hidden");
+    }
+    function stop(){ running=false; if(raf)cancelAnimationFrame(raf); }
+    for (var i=0;i<choices.length;i++){ (function(btn){ btn.addEventListener("click", function(){ answer(btn.getAttribute("data-engin")); }); })(choices[i]); }
+    id("mr-go").addEventListener("click", start);
+    id("mr-replay").addEventListener("click", start);
+    stopGames.push(stop);
+    reset();
+  })();
+
+})();
+</script>
+</body>
+</html>
