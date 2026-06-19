@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V&eacute;hicules militaires &mdash; &Eacute;valuation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F8F4EC; --ink:#23323d; --ink-soft:#5b6b75;
+    --copper:#B85C2E; --copper-d:#8f4420; --steel:#2E6A8E; --steel-soft:#e2edf3;
+    --card:#fff; --line:#e7ddca; --line-d:#d9cdb3;
+    --ok:#2f8f5b; --ok-bg:#e9f6ee; --no:#c0492f; --no-bg:#fbe9e5;
+    --shadow:0 10px 30px rgba(35,50,61,.08);
+    --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+    --disp:'Bricolage Grotesque',system-ui,-apple-system,Segoe UI,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--disp);font-size:18px;line-height:1.55;min-height:100vh;
+    background-image:linear-gradient(rgba(46,106,142,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(46,106,142,.04) 1px,transparent 1px);background-size:28px 28px;}
+  .page{max-width:780px;margin:0 auto;padding:0 22px 80px}
+  header.top{padding:44px 0 8px}
+  .eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--copper)}
+  h1{font-size:clamp(28px,4.2vw,44px);line-height:1.04;letter-spacing:-.03em;margin:.1em 0 .25em;font-weight:800}
+  .lead{font-size:17px;color:var(--ink-soft);margin:0}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px;margin:22px 0;box-shadow:var(--shadow)}
+  .field{margin-bottom:18px}
+  .field label{display:block;font-family:var(--mono);font-size:13px;letter-spacing:.04em;color:var(--ink-soft);margin-bottom:7px}
+  input[type=text],select{width:100%;font-family:var(--disp);font-size:17px;padding:13px 15px;border:1.5px solid var(--line-d);border-radius:12px;background:#fbfaf6}
+  input[type=text]:focus,select:focus{outline:none;border-color:var(--steel);background:#fff}
+
+  .btn{font-family:var(--disp);font-weight:600;font-size:16px;border:0;border-radius:12px;padding:13px 22px;cursor:pointer;transition:transform .1s,filter .15s}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--copper);color:#fff}
+  .btn-primary:hover{filter:brightness(1.06)}
+  .btn-primary:disabled{opacity:.45;cursor:not-allowed;filter:none}
+  .btn-ghost{background:#fff;color:var(--steel);border:1px solid var(--line-d)}
+  .btn-ghost:hover{background:var(--steel-soft)}
+  .btn-mini{font-size:14px;padding:9px 15px}
+
+  .hidden{display:none}
+
+  /* quiz */
+  .progress-row{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+  .progress-row .label{font-family:var(--mono);font-size:13px;color:var(--ink-soft);white-space:nowrap}
+  .bar{flex:1;height:10px;background:#fbfaf6;border:1px solid var(--line-d);border-radius:999px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--copper),var(--steel));transition:width .3s}
+  .qtag{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--copper);font-weight:700}
+  .qtext{font-size:21px;font-weight:600;letter-spacing:-.01em;margin:8px 0 18px}
+  .opts{display:grid;gap:11px}
+  .opt{font-family:var(--disp);font-size:16.5px;text-align:left;background:#fbfaf6;border:1.5px solid var(--line-d);border-radius:13px;padding:15px 17px;cursor:pointer;transition:.12s}
+  .opt:hover{border-color:var(--steel);background:var(--steel-soft);transform:translateY(-1px)}
+
+  /* result */
+  .scorebig{text-align:center;padding:8px 0 4px}
+  .scorebig .note{font-family:var(--disp);font-weight:800;font-size:64px;line-height:1;letter-spacing:-.03em;color:var(--copper-d)}
+  .scorebig .sub{font-family:var(--mono);font-size:14px;color:var(--ink-soft);margin-top:6px}
+  .sendstate{text-align:center;font-family:var(--mono);font-size:13.5px;margin:14px 0 4px;padding:9px 14px;border-radius:10px}
+  .sendstate.ok{background:var(--ok-bg);color:#1f6b40}
+  .sendstate.no{background:var(--no-bg);color:var(--no)}
+  .sendstate.wait{background:var(--steel-soft);color:var(--steel)}
+  .recap{margin-top:22px;border-top:1px dashed var(--line-d);padding-top:18px}
+  .recap h3{font-size:17px;margin:0 0 12px}
+  .ritem{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid #f1ead9}
+  .ritem .ic{font-family:var(--mono);font-weight:700;font-size:13px;border-radius:8px;padding:3px 8px;white-space:nowrap}
+  .ritem.ok .ic{background:var(--ok-bg);color:#1f6b40}
+  .ritem.no .ic{background:var(--no-bg);color:var(--no)}
+  .ritem .body{font-size:14.5px}
+  .ritem .qq{font-weight:600}
+  .ritem .aa{font-family:var(--mono);font-size:13px;color:var(--ink-soft);margin-top:3px}
+  .ritem .aa b{color:#1f6b40}
+
+  /* teacher */
+  .teacher-link{text-align:center;margin-top:30px}
+  .teacher-link a{font-family:var(--mono);font-size:13px;color:var(--ink-soft);cursor:pointer;text-decoration:underline dotted}
+  .dash-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .dash-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 16px}
+  .stat{font-family:var(--mono);font-size:13px;background:#fbfaf6;border:1px solid var(--line-d);border-radius:10px;padding:8px 13px}
+  .stat b{color:var(--steel)}
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th,td{text-align:left;padding:10px 10px;border-bottom:1px solid #eee2cd}
+  th{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+  tbody tr:hover{background:#fbfaf6}
+  td.note b{color:var(--copper-d)}
+  .empty{color:var(--ink-soft);font-style:italic;padding:18px 0}
+  .pw-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+  .pw-row input{max-width:240px}
+  .msg{font-family:var(--mono);font-size:13px;margin-top:8px}
+  .msg.no{color:var(--no)} .msg.ok{color:var(--ok)}
+  select.filter{width:auto;font-size:14px;padding:9px 12px}
+  .config-note{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);background:#fbf4ec;border:1px dashed var(--line-d);border-radius:10px;padding:10px 13px;margin-top:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="top">
+    <div class="eyebrow">Techno &middot; Physique &mdash; &Eacute;valuation</div>
+    <h1>V&eacute;hicules militaires</h1>
+    <p class="lead">16 questions. Lis bien, choisis ta r&eacute;ponse&nbsp;: on ne peut pas revenir en arri&egrave;re. Ton score sera envoy&eacute; &agrave; ton professeur &agrave; la fin.</p>
+  </header>
+
+  <!-- ===== IDENTITE ===== -->
+  <section class="card" id="screen-id">
+    <div class="field">
+      <label>Ton pr&eacute;nom</label>
+      <input type="text" id="prenom" placeholder="Ex.&nbsp;: Camille" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Ta classe</label>
+      <select id="classe"><option value="">&mdash; Choisis ta classe &mdash;</option></select>
+    </div>
+    <button class="btn btn-primary" id="start" disabled>Commencer l&rsquo;&eacute;valuation</button>
+  </section>
+
+  <!-- ===== QUIZ ===== -->
+  <section class="card hidden" id="screen-quiz">
+    <div class="progress-row">
+      <span class="label" id="q-progress">Question 1 / 16</span>
+      <span class="bar"><i id="q-bar"></i></span>
+    </div>
+    <div class="qtag" id="q-tag"></div>
+    <div class="qtext" id="q-text"></div>
+    <div class="opts" id="q-opts"></div>
+  </section>
+
+  <!-- ===== RESULTAT ===== -->
+  <section class="card hidden" id="screen-result">
+    <div class="scorebig">
+      <div class="note" id="r-note">0 / 20</div>
+      <div class="sub" id="r-sub">0 bonne r&eacute;ponse sur 16</div>
+    </div>
+    <div class="sendstate wait" id="r-send">Envoi du r&eacute;sultat&hellip;</div>
+    <div class="recap">
+      <h3>Corrig&eacute;</h3>
+      <div id="r-recap"></div>
+    </div>
+  </section>
+
+  <!-- ===== ESPACE ENSEIGNANT ===== -->
+  <div class="teacher-link" id="teacher-link"><a id="open-teacher">Espace enseignant</a></div>
+
+  <section class="card hidden" id="screen-login">
+    <div class="field">
+      <label>Mot de passe enseignant</label>
+      <div class="pw-row">
+        <input type="text" id="pw" placeholder="Mot de passe" autocomplete="off">
+        <button class="btn btn-primary btn-mini" id="pw-go">Acc&eacute;der</button>
+        <button class="btn btn-ghost btn-mini" id="pw-cancel">Retour</button>
+      </div>
+      <div class="msg" id="pw-msg"></div>
+    </div>
+  </section>
+
+  <section class="card hidden" id="screen-dash">
+    <div class="dash-head">
+      <h3 style="margin:0;font-size:20px">R&eacute;sultats des &eacute;l&egrave;ves</h3>
+      <div class="dash-tools">
+        <select class="filter" id="filter-classe"><option value="">Toutes les classes</option></select>
+        <button class="btn btn-ghost btn-mini" id="refresh">&#8635; Actualiser</button>
+        <button class="btn btn-ghost btn-mini" id="export">&#11015; Export CSV</button>
+        <button class="btn btn-ghost btn-mini" id="dash-close">Fermer</button>
+      </div>
+    </div>
+    <div class="stats" id="dash-stats"></div>
+    <div id="dash-table"></div>
+    <div class="config-note" id="dash-config"></div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================================================
+     CONFIGURATION  (v\u00e9rifie que l'URL est celle de tes autres outils)
+     ============================================================ */
+  var CONFIG = {
+    FIREBASE_URL: "https://evaluation-bloc-default-rtdb.europe-west1.firebasedatabase.app",
+    NODE: "resultats_vehicules",
+    PROF_PASSWORD: "Agostini2025",
+    CLASSES: ["5e A","5e B","5e C","5e D","4e A","4e B","4e C","4e D","3e A","3e B","3e C","3e D","ULIS","Autre"]
+  };
+  function endpoint(){ return CONFIG.FIREBASE_URL.replace(/\/+$/,"") + "/" + CONFIG.NODE + ".json"; }
+
+  /* ============================================================
+     QUESTIONS  (QCM ; l'ordre des r\u00e9ponses est m\u00e9lang\u00e9)
+     ============================================================ */
+  var QUESTIONS = [
+    { tag:"Fonctions", q:"Un v\u00e9hicule con\u00e7u surtout pour traverser une rivi\u00e8re doit pouvoir\u2026",
+      opts:[{t:"Flotter",ok:true},{t:"Tirer tr\u00e8s loin",ok:false},{t:"Rouler \u00e0 200 km/h",ok:false}] },
+    { tag:"Vitesse", q:"Un blind\u00e9 parcourt 150 km en 3 h. Sa vitesse moyenne est\u2026",
+      opts:[{t:"50 km/h",ok:true},{t:"45 km/h",ok:false},{t:"60 km/h",ok:false}] },
+    { tag:"Vitesse", q:"Rouler \u00e0 72 km/h, c\u2019est environ\u2026",
+      opts:[{t:"20 m/s",ok:true},{t:"7 m/s",ok:false},{t:"72 m/s",ok:false}] },
+    { tag:"Pression", q:"\u00c0 quoi servent surtout les chenilles d\u2019un char ?",
+      opts:[{t:"\u00c0 r\u00e9partir le poids sur une grande surface",ok:true},{t:"\u00c0 aller plus vite que les roues",ok:false},{t:"\u00c0 flotter sur l\u2019eau",ok:false}] },
+    { tag:"Pression", q:"Une force de 1000 N s\u2019exerce sur une surface de 0,5 m\u00b2. La pression vaut\u2026",
+      opts:[{t:"2000 Pa",ok:true},{t:"500 Pa",ok:false},{t:"1500 Pa",ok:false}] },
+    { tag:"Pression", q:"Pour s\u2019enfoncer le moins possible dans la boue, il faut\u2026",
+      opts:[{t:"Une grande surface de contact",ok:true},{t:"Une petite surface de contact",ok:false},{t:"Aller le plus vite possible",ok:false}] },
+    { tag:"Blindage", q:"\u00c0 \u00e9paisseur \u00e9gale, un blindage inclin\u00e9 est\u2026",
+      opts:[{t:"Plus efficace, car le trajet \u00e0 traverser est plus long",ok:true},{t:"Moins efficace",ok:false},{t:"Exactement aussi efficace",ok:false}] },
+    { tag:"Mat\u00e9riaux", q:"Un blindage composite est constitu\u00e9\u2026",
+      opts:[{t:"De plusieurs mat\u00e9riaux empil\u00e9s",ok:true},{t:"D\u2019un seul bloc d\u2019acier",ok:false},{t:"De plastique souple",ok:false}] },
+    { tag:"Archim\u00e8de", q:"Un v\u00e9hicule amphibie flotte lorsque la pouss\u00e9e de l\u2019eau\u2026",
+      opts:[{t:"Est au moins \u00e9gale \u00e0 son poids",ok:true},{t:"Est plus petite que son poids",ok:false},{t:"N\u2019existe pas",ok:false}] },
+    { tag:"Archim\u00e8de", q:"Pourquoi une coque pleine d\u2019air flotte-t-elle mieux qu\u2019une coque pleine de sable ?",
+      opts:[{t:"Parce que l\u2019air est beaucoup plus l\u00e9ger",ok:true},{t:"Parce que l\u2019air est plus lourd",ok:false},{t:"Parce que le sable est \u00e9tanche",ok:false}] },
+    { tag:"Drone & robot", q:"En zone dangereuse, l\u2019int\u00e9r\u00eat d\u2019un robot t\u00e9l\u00e9command\u00e9 est\u2026",
+      opts:[{t:"D\u2019\u00e9loigner l\u2019humain du danger",ok:true},{t:"De faire de jolies photos",ok:false},{t:"D\u2019aller plus vite qu\u2019un avion",ok:false}] },
+    { tag:"Compromis", q:"Ajouter beaucoup de blindage \u00e0 un v\u00e9hicule\u2026",
+      opts:[{t:"L\u2019alourdit, donc le ralentit",ok:true},{t:"Le rend plus rapide",ok:false},{t:"Le rend invisible aux radars",ok:false}] },
+    { tag:"Balistique", q:"La trajectoire d\u2019un projectile (sans tenir compte de l\u2019air) a la forme d\u2019une\u2026",
+      opts:[{t:"Parabole",ok:true},{t:"Ligne droite",ok:false},{t:"Cercle",ok:false}] },
+    { tag:"Mat\u00e9riaux", q:"L\u2019acier est tr\u00e8s r\u00e9sistant. Son principal d\u00e9faut est\u2026",
+      opts:[{t:"Il est lourd",ok:true},{t:"Il est trop l\u00e9ger",ok:false},{t:"Il fond au soleil",ok:false}] },
+    { tag:"Syst\u00e8mes", q:"Un tourelleau t\u00e9l\u00e9op\u00e9r\u00e9 sert surtout \u00e0\u2026",
+      opts:[{t:"Commander l\u2019arme \u00e0 distance en restant prot\u00e9g\u00e9",ok:true},{t:"Aller plus vite sur route",ok:false},{t:"Faire flotter le v\u00e9hicule",ok:false}] },
+    { tag:"Syst\u00e8mes", q:"Le blindage cage (slat armor) prot\u00e8ge en\u2026",
+      opts:[{t:"Emp\u00eachant la roquette de fonctionner correctement",ok:true},{t:"Ajoutant une grosse masse d\u2019acier",ok:false},{t:"Rendant le v\u00e9hicule invisible",ok:false}] }
+  ];
+  var TOTAL = QUESTIONS.length;
+
+  /* ============================================================
+     OUTILS
+     ============================================================ */
+  function id(x){ return document.getElementById(x); }
+  function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var tmp=a[i]; a[i]=a[j]; a[j]=tmp; } return a; }
+  function fmtNote(n){ var r=Math.round(n*2)/2; return (r===Math.floor(r)) ? String(r) : String(r).replace(".",","); }
+  function esc(s){ return String(s).replace(/[<>&"]/g, function(c){ return {"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]; }); }
+  function pad(n){ return n<10 ? "0"+n : ""+n; }
+  function dateStr(d){ return pad(d.getDate())+"/"+pad(d.getMonth()+1)+"/"+d.getFullYear()+" "+pad(d.getHours())+":"+pad(d.getMinutes()); }
+
+  /* remplir les <select> de classes */
+  (function(){
+    var sel=id("classe"), filt=id("filter-classe");
+    for (var i=0;i<CONFIG.CLASSES.length;i++){
+      var o=document.createElement("option"); o.value=CONFIG.CLASSES[i]; o.textContent=CONFIG.CLASSES[i]; sel.appendChild(o);
+      var o2=document.createElement("option"); o2.value=CONFIG.CLASSES[i]; o2.textContent=CONFIG.CLASSES[i]; filt.appendChild(o2);
+    }
+  })();
+
+  /* ============================================================
+     FLUX ELEVE
+     ============================================================ */
+  var state = { idx:0, answers:[], prenom:"", classe:"" };
+
+  var prenomEl=id("prenom"), classeEl=id("classe"), startBtn=id("start");
+  function checkStart(){ startBtn.disabled = !(prenomEl.value.trim() && classeEl.value); }
+  prenomEl.addEventListener("input", checkStart);
+  classeEl.addEventListener("change", checkStart);
+
+  startBtn.addEventListener("click", function(){
+    state.prenom = prenomEl.value.trim();
+    state.classe = classeEl.value;
+    state.idx = 0; state.answers = [];
+    id("screen-id").classList.add("hidden");
+    id("teacher-link").classList.add("hidden");
+    id("screen-quiz").classList.remove("hidden");
+    renderQuestion();
+  });
+
+  function renderQuestion(){
+    var Q = QUESTIONS[state.idx];
+    id("q-progress").textContent = "Question " + (state.idx+1) + " / " + TOTAL;
+    id("q-bar").style.width = Math.round(state.idx/TOTAL*100) + "%";
+    id("q-tag").textContent = Q.tag;
+    id("q-text").innerHTML = Q.q;
+    var box = id("q-opts"); box.innerHTML = "";
+    var opts = shuffle(Q.opts);
+    for (var i=0;i<opts.length;i++){
+      (function(opt){
+        var b=document.createElement("button");
+        b.className="opt"; b.innerHTML=opt.t;
+        b.addEventListener("click", function(){
+          var correct = Q.opts.filter(function(o){return o.ok;})[0].t;
+          state.answers.push({ tag:Q.tag, q:Q.q, chosen:opt.t, ok:opt.ok, correct:correct });
+          state.idx++;
+          if (state.idx >= TOTAL) finish();
+          else renderQuestion();
+        });
+        box.appendChild(b);
+      })(opts[i]);
+    }
+  }
+
+  function finish(){
+    var correct = state.answers.filter(function(a){return a.ok;}).length;
+    var note = correct/TOTAL*20;
+    id("screen-quiz").classList.add("hidden");
+    id("screen-result").classList.remove("hidden");
+    id("r-note").textContent = fmtNote(note) + " / 20";
+    id("r-sub").textContent = correct + (correct>1?" bonnes r\u00e9ponses":" bonne r\u00e9ponse") + " sur " + TOTAL;
+    // corrig\u00e9
+    var recap=id("r-recap"); recap.innerHTML="";
+    for (var i=0;i<state.answers.length;i++){
+      var a=state.answers[i];
+      var row=document.createElement("div");
+      row.className="ritem "+(a.ok?"ok":"no");
+      var ans = a.ok
+        ? "Ta r\u00e9ponse : <b>"+esc(a.chosen)+"</b>"
+        : "Ta r\u00e9ponse : "+esc(a.chosen)+" &mdash; Bonne r\u00e9ponse : <b>"+esc(a.correct)+"</b>";
+      row.innerHTML = "<span class='ic'>"+(a.ok?"+1":"0")+"</span><div class='body'><div class='qq'>"+(i+1)+". "+a.q+"</div><div class='aa'>"+ans+"</div></div>";
+      recap.appendChild(row);
+    }
+    sendResult(correct, note);
+  }
+
+  function sendResult(correct, note){
+    var box=id("r-send"); box.className="sendstate wait"; box.textContent="Envoi du r\u00e9sultat\u2026";
+    var payload = {
+      prenom: state.prenom,
+      classe: state.classe,
+      score: correct,
+      total: TOTAL,
+      note20: Math.round(note*2)/2,
+      date: dateStr(new Date()),
+      ts: Date.now(),
+      details: state.answers.map(function(a){ return { tag:a.tag, ok:a.ok }; })
+    };
+    // REST sans header Content-Type -> requete "simple", pas de preflight CORS
+    fetch(endpoint(), { method:"POST", body: JSON.stringify(payload) })
+      .then(function(res){ if(!res.ok) throw new Error("HTTP "+res.status); return res.json(); })
+      .then(function(){ box.className="sendstate ok"; box.textContent="\u2713 R\u00e9sultat envoy\u00e9 \u00e0 ton professeur."; })
+      .catch(function(err){
+        box.className="sendstate no";
+        box.textContent="\u26a0 Envoi impossible. Note ton score ("+correct+"/"+TOTAL+") et pr\u00e9viens ton professeur.";
+        if (window.console) console.error("Envoi Firebase:", err);
+      });
+  }
+
+  /* ============================================================
+     ESPACE ENSEIGNANT
+     ============================================================ */
+  id("open-teacher").addEventListener("click", function(){
+    id("screen-id").classList.add("hidden");
+    id("teacher-link").classList.add("hidden");
+    id("screen-login").classList.remove("hidden");
+    id("pw").focus();
+  });
+  id("pw-cancel").addEventListener("click", function(){
+    id("screen-login").classList.add("hidden");
+    id("pw-msg").textContent="";
+    id("screen-id").classList.remove("hidden");
+    id("teacher-link").classList.remove("hidden");
+  });
+  function tryLogin(){
+    var msg=id("pw-msg");
+    if (id("pw").value === CONFIG.PROF_PASSWORD){
+      id("screen-login").classList.add("hidden");
+      id("pw").value=""; msg.textContent="";
+      id("screen-dash").classList.remove("hidden");
+      loadResults();
+    } else {
+      msg.className="msg no"; msg.textContent="Mot de passe incorrect.";
+    }
+  }
+  id("pw-go").addEventListener("click", tryLogin);
+  id("pw").addEventListener("keydown", function(e){ if(e.key==="Enter") tryLogin(); });
+  id("dash-close").addEventListener("click", function(){
+    id("screen-dash").classList.add("hidden");
+    id("screen-id").classList.remove("hidden");
+    id("teacher-link").classList.remove("hidden");
+  });
+
+  var DASH = { all:[] };
+
+  function loadResults(){
+    var tbl=id("dash-table"); tbl.innerHTML="<div class='empty'>Chargement\u2026</div>";
+    id("dash-config").textContent = "Source : " + endpoint();
+    fetch(endpoint(), { method:"GET" })
+      .then(function(res){ if(!res.ok) throw new Error("HTTP "+res.status); return res.json(); })
+      .then(function(data){
+        var arr=[];
+        if (data){ for (var k in data){ if (Object.prototype.hasOwnProperty.call(data,k)){ var r=data[k]; r._key=k; arr.push(r); } } }
+        arr.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+        DASH.all = arr;
+        render();
+      })
+      .catch(function(err){
+        tbl.innerHTML="<div class='empty'>Impossible de charger les r\u00e9sultats. V\u00e9rifie l\u2019URL Firebase et les r\u00e8gles de la base.</div>";
+        if (window.console) console.error("Lecture Firebase:", err);
+      });
+  }
+
+  function currentRows(){
+    var f=id("filter-classe").value;
+    return f ? DASH.all.filter(function(r){ return r.classe===f; }) : DASH.all;
+  }
+
+  function render(){
+    var rows=currentRows();
+    // stats
+    var stats=id("dash-stats");
+    if (rows.length){
+      var sum=0; for (var i=0;i<rows.length;i++){ sum += (rows[i].note20||0); }
+      var moy = sum/rows.length;
+      stats.innerHTML = "<span class='stat'>R\u00e9sultats&nbsp;: <b>"+rows.length+"</b></span>"+
+                        "<span class='stat'>Moyenne&nbsp;: <b>"+fmtNote(moy)+" / 20</b></span>";
+    } else { stats.innerHTML=""; }
+    // table
+    var tbl=id("dash-table");
+    if (!rows.length){ tbl.innerHTML="<div class='empty'>Aucun r\u00e9sultat pour ce filtre.</div>"; return; }
+    var html="<table><thead><tr><th>Pr\u00e9nom</th><th>Classe</th><th>Score</th><th>Note</th><th>Date</th></tr></thead><tbody>";
+    for (var j=0;j<rows.length;j++){
+      var r=rows[j];
+      html += "<tr><td>"+esc(r.prenom||"?")+"</td><td>"+esc(r.classe||"?")+"</td>"+
+              "<td>"+(r.score!=null?r.score:"?")+" / "+(r.total||TOTAL)+"</td>"+
+              "<td class='note'><b>"+(r.note20!=null?fmtNote(r.note20):"?")+"</b> / 20</td>"+
+              "<td>"+esc(r.date||"")+"</td></tr>";
+    }
+    html += "</tbody></table>";
+    tbl.innerHTML=html;
+  }
+
+  id("filter-classe").addEventListener("change", render);
+  id("refresh").addEventListener("click", loadResults);
+
+  id("export").addEventListener("click", function(){
+    var rows=currentRows();
+    if (!rows.length){ return; }
+    var lines=["Prenom;Classe;Score;Total;Note_sur_20;Date"];
+    for (var i=0;i<rows.length;i++){
+      var r=rows[i];
+      lines.push([
+        (r.prenom||"").replace(/;/g,","),
+        (r.classe||"").replace(/;/g,","),
+        (r.score!=null?r.score:""),
+        (r.total||TOTAL),
+        (r.note20!=null?fmtNote(r.note20):""),
+        (r.date||"")
+      ].join(";"));
+    }
+    var csv="\ufeff"+lines.join("\r\n");
+    var blob=new Blob([csv], {type:"text/csv;charset=utf-8"});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a");
+    var f=id("filter-classe").value;
+    a.href=url; a.download="resultats_vehicules"+(f?"_"+f.replace(/\s/g,""):"")+".csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  });
+
+})();
+</script>
+</body>
+</html>
